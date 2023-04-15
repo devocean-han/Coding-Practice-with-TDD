@@ -7,6 +7,8 @@
 > <summary>프로그래머스 0단계:</summary>
 > <div markdown="1">
 >
+> ("programmers-lv0" 폴더)
+>
 > - 001-pizza.js _피자 나눠 먹기(3)_
 > - 002-string-reverse.js _문자열 뒤집기_
 > - 003-babbling.js _옹알이(1)_
@@ -28,6 +30,8 @@
 > <details>
 > <summary>기타 연습문제:</summary>
 > <div markdown="1">
+>
+> ("other-sources-easy" 폴더)
 >
 > - Bowling game
 > - Correctly closed parentheses

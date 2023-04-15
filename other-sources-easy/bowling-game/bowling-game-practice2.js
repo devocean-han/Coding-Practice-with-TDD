@@ -1,3 +1,9 @@
+/* 연습문제 규칙 및 자바 풀이 참조: 
+http://butunclebob.com/ArticleS.UncleBob.TheBowlingGameKata 
+자바스크립트 버전 풀이 참조: 
+https://www.youtube.com/watch?v=brahHchaegc 
+*/
+
 class BowlingGame2 {
     constructor() {
         this.pins = [];

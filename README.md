@@ -21,8 +21,22 @@
 > - 010-세균 증식.js
 > - 011-모음 제거.js
 > - 012-순서쌍의 개수.js
-> - 013-제일 작은 수 제거.js
-> - 014-옹알이(2)
+> - 013-
+> - 014-
+> - 015-종이 자르기.js
+> - 016-문자열 밀기.js
+>
+> </div>
+> </details>
+
+> <details>
+> <summary>프로그래머스 1단계:</summary>
+> <div markdown="1">
+>
+> ("programmers-lv1" 폴더)
+>
+> - 101-제일 작은 수 제거.js
+> - 102-옹알이(2)
 >
 > </div>
 > </details>
@@ -34,6 +48,7 @@
 > ("other-sources-easy" 폴더)
 >
 > - Bowling game
+> - Prime-factors
 > - Correctly closed parentheses
 > - Fizz-buzz
 > - Mars rover

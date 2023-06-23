@@ -77,21 +77,115 @@ function solution(target, position, speed) {
 	*/
 	
 	// 1. position을 오름차순 정렬한다. 
-	position.map((car, index) => {
-		return { value: car, originalIndex: index }
-	}).sort();
+	// position.map((car, index) => {
+	// 	return { value: car, originalIndex: index }
+	// }).sort();
 
 	// 2. 그에 똑같이 맞춰서 speed도 자리를 바꾼다. 
 	// 	-> 1. position을 {value: 값, originalIndex: 원래 인덱스}의 객체로 만들어 value 기준으로 오름차순 정렬한다. 
 	//  -> 2. speed도 {value: 값, originalIndex: 원래 인덱스}의 객체로 만들어서... 똑같이 오름차순 정렬한다. 
 	//  -> 1+2. 아니 그냥! {position, speed}를 한번에 합친 객체를 만들면 되지!
+	const cars = position.map((car, index) => {
+		return { position: car, speed: speed[index] }
+	}).sort((a, b) => a.position - b.position);
+	console.log("cars: ", cars)
 	
 	// 3. 각 차량별로 '목적지까지 걸리는 시간'을 계산한 결과 배열 expectedTime을 만든다.
 	// 		=> 시간 = (목적지-원래위치) / 속도
-	// 4. 이를 기준으로 inscreaing stack을 만든다. 
-	// 5. 최종적으로 stack에 남아있는 개수를 반환한다. 
+	const expectedTime = cars.map((car) => (target - car.position) / car.speed);
+	console.log("expectedTime:", expectedTime)
 
-	return 1;
+	// // 4. 이를 기준으로 inscreaing stack을 만든다. 
+	// const stack = [];
+	// let fleets = 0;
+	// for (let i = 0; i < expectedTime.length; i++) {
+	// 	let popOccurred = false;
+	// 	while (stack.length && stack[stack.length - 1] > expectedTime[i]) {
+	// 		stack.pop();
+	// 		popOccurred = true;
+	// 	}
+	// 	stack.push(expectedTime[i]);
+	// 	if (popOccurred) fleets++;
+	// }
+
+	// console.log('stack:', stack);
+	// console.log('fleets: ', fleets)
+	
+	// // 5. 최종적으로 stack에 들어가기 위해 pop을 발생시킨 요소(=병목현상을 발생시킨 차량)의 개수를 반환한다. 
+	// // 5-1. 마지막으로 스택에 들어간 치량은 ('뽑히지' 않았어도) 한 무리를 형성하게 되므로, +1.
+	// return fleets + 1;
+
+
+	// 4. 틀렸다. decreasing stack을 만든다. 특별히 monotonic인
+	const stack = [];
+	for (let i = 0; i < expectedTime.length; i++) {
+		while (stack.length && stack[stack.length - 1] <= expectedTime[i]) stack.pop();
+		stack.push(expectedTime[i]);
+	}
+
+	// 5. stack에 남은 원소의 개수가 만들어지는 '무리' 수이다. 
+	return stack.length;
 }
 
-module.exports.solution = solution;
+// 깔끔하게 정리한 내 해답:
+// Time complexity: 4O(N) + O(N logN) => O(N logN)
+// Space complexity: O(N) + O(N) + O(N) + O(N) => O(N)
+function cleanSolution(target, position, speed) {
+	if (position.length === 1) return 1;
+	
+	if ((new Set(speed)).size === 1) return position.length; // O(N)
+
+	// 1. 원래 위치와 속도를 묶어서 위치 오름차순으로 정렬
+	const cars = position.map((value, index) => {
+		return { position: value, speed: speed[index], } // O(N)
+	}).sort((a, b) => a.position - b.position); // O(N logN)
+
+	// 2. 각 차량의 예상 소요 시각 expectedTime 구하기
+	const expectedTime = cars.map((car) => (target - car.position) / car.speed); // O(N)
+
+	// 3. "expectedTime"의 monotonic decreasing stack 구하기
+	const stack = [];
+	for (let i = 0; i < expectedTime.length; i++) { // O(N)
+		while (stack.length && stack[stack.length - 1] <= expectedTime[i]) stack.pop()
+		stack.push(expectedTime[i]);
+	}
+
+	// 4. stack의 길이 반환
+	return stack.length;
+}
+
+module.exports.solution = carFleet;
+
+// 다른 풀이: 
+/**
+ *  O(NlogN) Quick sort the cars by position. (Other sort can be applied)
+    O(N) One pass for all cars from the end to start (another direction also works).
+
+    O(N) Space for sorted cars.
+    O(1) space is possible if we sort pos inplace.
+ */
+function carFleet(target, position, speed) {
+	let len = position.length;
+	let map = new Map(), res = 0, lastTime = -1; // last time is the time last car reached target
+	
+	// store car position and its speed
+	for(let i = 0; i < len; i++){
+		map.set(position[i], speed[i]);
+	}
+	
+	// sort cars with their position, with first car being the closest car to target
+	const sortedPos = [...map.keys()].sort((a, b) => b - a);
+	
+	for(let i = 0; i < len; i++){
+		let time = (target - sortedPos[i]) / map.get(sortedPos[i]);
+		
+		// case 1: if our curr car is fast and takes even less time to reach target then our last car, they will be merged
+		// case 2: our current car takes more time to reach target, it cant merge with the last car it has to be a new fleet
+		if(time > lastTime){ 
+			res++;
+			lastTime = time;
+		}
+	}
+	
+	return res;
+};

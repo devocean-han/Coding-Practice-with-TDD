@@ -46,7 +46,7 @@ function solution(prices) {
 	}
 
 	return maxDiff <= 0 ? 0 : maxDiff;
-}
+} 
 
 // 잘 보니까, [2, 10, 3, 1, 10]같은 경우 0번부터 오른쪽으로 진행하면서 더 작은 값이 보일 때마다 '매수일'을 갱신한다.
 // ...하지만 오른쪽에서부터 훑어오는 최고가 포인터가 닿기 전에 지나가버리면...
@@ -96,10 +96,48 @@ function twoPointerSolution(prices) {
 	return maxDiff;
 }
 
-module.exports.solution = onePointerSolution;
+module.exports.solution = slidingWindowSolution3;
 
 // 다른 풀이:
-function maxProfit(prices) {
+
+// 조금 더 간단히 하면, 최고점(매도일) 포인터를 없앨 수 있다: 
+function onePointerSolution(prices) {
+	if (prices === null || prices.length <= 1) return 0;
+
+	let low = prices[0];
+	let maxDiff = 0;
+	for (let i = 1; i < prices.length; i++) {
+		low = Math.min(low, prices[i]);
+		maxDiff = Math.max(maxDiff, prices[i] - low);
+	}
+
+	return maxDiff;
+}
+
+
+/* Sliding window 알고리즘 
+1. left bound 와 right bound 를 정의한다. 보통은 둘다 0 번 인덱스에서 시작한다.
+2. right bound 를 하나씩 늘려가며 조건을 확인한다.
+3. 조건이 맞지 않는다면 left bound 를 조건이 맞을 때까지 right bound 와 같거나 작은 수 범위 내에서 증가시킨다.
+4. right bound 가 끝에 도달하면, 보통 알고리즘이 끝난다.
+Time complexity: left bound 가 right bound 를 넘어서거나 뒤로 돌아가는 일이 없으므로, 복잡도는 O(n) 이 된다.
+
+형식: 
+function fn(arr) {
+  // left bound 초기화, right bound 는 for 문에서 초기화
+  let left = 0;
+  // right bound 끝까지 반복하기, (right bound 를 하나씩 늘린다.)
+  for (let right = 0; right < arr.length; right++) {
+    // 조건 맞을 때까지 left bound 더해주기
+    while(left <= right && 특정 조건) {
+      left++;
+    }
+  }
+}
+*/
+
+// Sliding window
+function slidingWindowSolution1(prices) {
 	let left = 0, right = 1; // 각각 매수일 포인터, 매도일 포인터
 	let maxProfit = 0;
 
@@ -122,16 +160,39 @@ function maxProfit(prices) {
 	return maxProfit;
 }
 
-// 조금 더 간단히 하면, 최고점(매도일) 포인터를 없앨 수 있다: 
-function onePointerSolution(prices) {
-	if (prices === null || prices.length <= 1) return 0;
+// 위의 해답을 조금 다르게 표현한...
+// Sliding window 알고리즘 적용: 
+function slidingWindowSolution2(prices) {
+	let [left, right, max] = [0, 1, 0];
 
-	let low = prices[0];
-	let maxDiff = 0;
-	for (let i = 1; i < prices.length; i++) {
-		low = Math.min(low, prices[i]);
-		maxDiff = Math.max(maxDiff, prices[i] - low);
+	while (right < prices.length) {
+		const canSlide = prices[right] <= prices[left];
+		// 미래 주가가 구매가격과 같거나 작다면 그냥 구매일을 그 시점으로 옮김. 
+		if (canSlide) left = right;
+
+		// '구매일'을 옮기거나 말거나, 무조건 '차'를 계산해서 '최고차'를 업데이트해준다. 
+		const profit = prices[right] - prices[left];
+		max = Math.max(max, profit);
+		// 다음 날짜의 주가로 이동한다. 
+		right++;
 	}
 
-	return maxDiff;
+	return max;
+}
+
+// 내가 써본, while문 대신 for문을 활용한 sliding window:  
+function slidingWindowSolution3(prices) {
+	let left = 0;
+	let maxProfit = 0;
+
+	for (let right = 0; right < prices.length; right++) {
+		// 조건이 맞을 때 left bound 옮겨주기
+		// = right 값이 더 작아지는 경우
+		if (prices[right] < prices[left]) left = right;
+
+		// 항상, 차(수익)을 계산해서 최대차(수익)을 업데이트할 것
+		maxProfit = Math.max(maxProfit, prices[right] - prices[left]);
+	}
+
+	return maxProfit;
 }

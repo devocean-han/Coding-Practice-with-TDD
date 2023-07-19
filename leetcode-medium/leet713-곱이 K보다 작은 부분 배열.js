@@ -117,38 +117,44 @@ function solution(nums, k) {
 // (3. 마지막 숫자에서 곱이 < K라면, right-left를(while을 빠져나올 때 마지막으로 right++가 될 것임로 right-left+1이 아니라 right-left가 맞다.) 마지막으로 한 번 totalSub에 더해준다. 마지막 숫자에서 곱이 >= K가 되면, 자동으로 2-2를 한 번 거친 후 right++가 진행되어 while을 빠져나올 것이므로 똑같이 right-left 개가 마지막으로 totalSub에 더해지게 된다.)
 // 4. totalSub를 반환한다.
 
-// => 해보자!
-// => 실패중. 에러 케이스 하나를 해결하지 못했다. 
+// => 실패: 이 메소드는 길이 막힌 로직이다. 
+// 그러나 수정에 수정을 거듭하였고, 단 하나의 결론이 도출되어 이 다음 메소드에 적용하였고, 성공했다(다른 해답도 참고함). 
 function slidingWindowSolution(nums, k) {
 	if (k <= 1) return 0;
 
+	// 양쪽 창문 모두 왼쪽 끝(0)에서 시작한다.
 	let left = right = totalSub = 0;
-	
 	let product = 1;
+	
+	// 오른쪽 창문을 오른쪽으로 한 칸씩 열 것이다. 
 	while (right < nums.length) {
 		product *= nums[right];
 
 		if (product >= k) {
-			totalSub += right - left;
-			while (product >= k && left <= right) {
+			let widthBefore = right - left;
+			totalSub += widthBefore;
+			while (product >= k && left < right) {
 				product /= nums[left];
 				left++;
 			}
+			// nums:[10,9,10,4,3,8,3,3,6,2,10,10,9,3], k:19 일 때
+			// [4,5,8] => [8]로 갈 때 [4]와 [4,5]는 셈에 포함되지만 [5]를 완전히 건너 뛰게 되어버린다.
+			// 따라서 (1)한 칸을 '전진(right이)' 할 때마다 한 번씩 정산하는 방안이 필요하다. 아니면 (2)왼 창문을 두 칸 이상 한꺼번에 닫을 때마다 '닫은 칸 수 - 1'개만큼 셈에 더해주는 작업을 덧붙여야 한다. 
+			// 왼쪽 창문 닫기를 마쳤는데 최종 옮겨진 칸이 2칸 이상이면 '옮긴 칸 - 1'만큼 셈에 더해준다.
+			let widthAfter = right - left;
+			if (widthBefore - widthAfter >= 2) totalSub += (widthBefore - widthAfter - 1);
+			// => 그러나 이렇게 하면 nums:[1,10,2,3], k:10 의 경우 왼 창문이 오른 창문을 '앞지르게' 될 때 이상하게 -- = +값이 되어 무조건 >=2가 되게 되어버린다. 그러니 이 방법은 왼쪽 창문이 오른쪽 창문보다 앞지를 수도 있는 문제에는 적용할 수 없다. 결국, (1)대안인 '한 칸을 전진할 때마다 한 번씩 정산하는 방안'을 적용해야 하는 것으로 결론!
 		}
 
 		right++;
 	}
 
-	// totalSub += right - left;
-	// => 사실 (right - left)! 개만큼을 더해야 하는 것..?
+	// (right - left = n)개로 만들 수 있는 '조합' 총 개수를 더해야 한다. 즉 n + (n - 1) + ... + 2 + 1을 더해줘야 한다.  
 	let leftOver = right - left;
 	while (leftOver > 0) {
 		totalSub += leftOver;
 		leftOver--;
 	}
-	// => 앗, 잠깐만 이거 곱하지를 않았는데..? 팩토리얼 계산이 아닌데. 근데 '연속된 부분배열' 개수를 구할 땐 이게 오히려 맞았다. 
-
-	
 
 	return totalSub;
 }
@@ -163,24 +169,31 @@ function slidingWindowSolution(nums, k) {
 // => 아하, [10]이 포함된 둘과 [5]가 포함된 셋은 카운트됐지만 [2]와 [6]에 대해서는 안 됐네...
 
 
-module.exports.solution = slidingWindowSolution;
+module.exports.solution = numSubarrayProductLessThanK;
 
-// 다른 해답: 
+// 다른 해답 및 위 시행착오에서 도출한 유일한 로직: 
 function numSubarrayProductLessThanK(nums, k) {
 	if (k <= 1) return 0;
-	
+	// nums = [10,5,2,6], k = 100
     let totalSub = 0, left = 0, right = 0, product = 1;
 
+	// product >= k가 될 때까지 창문 '열기'(오른쪽으로 확장)
     while (right < nums.length) {
-        product *= nums[right];
-        while(product >= k)  {
+		product *= nums[right];
+		
+		// product >= k를 유지하는 동안, 왼쪽 창문 '닫기'
+		// left < right이라는 조건이 없어 창문이 뒤집어질 수 있지만 괜찮다. 언제나 왼 창문이 딱 한 칸만 앞서고 멈추게 되며, 그 경우에도 totalSub에 더해지는 값은 0이 되어 문제 없다. 
+        while (product >= k)  {
             product /= nums[left];
             left++;
 		}
 		
+		// 창문 '사이즈'를 계산해서 총 부분 배열 개수에 더하기
+		// 오른쪽 창문을 한 칸 열 때마다 무조건 한 번씩 계산하게 되므로 왼 창문을 한꺼번에 여러칸 닫음으로 인해서 건너 띄어지는 요소를 방지할 수 있다. 이렇게 '오른 창 한 칸 전진마다 계산하기'가 유일한 방법이다. ...자세한 사항은 위의 시행착오를 참조할 것.  
         totalSub += right - left + 1;
         right++;
 	}
 	
     return totalSub;
 };
+// => ex) 창문이 '뒤집어지는' 케이스는 nums:[1,10,2,3], k:10 같이 k 이상인 단일 요소가 존재하는 경우이다.  

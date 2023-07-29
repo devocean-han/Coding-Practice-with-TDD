@@ -129,52 +129,157 @@ function solution2(s, k) {
 			map.set(char, [i]);
 		}
 	}
-	console.dir(map);	
+	// console.dir(map);	
 	
 	// 2. map에 담긴 문자를 순회하며 각 등장 위치간의 차를 구하여 배열 gap에 따로 저장한다. => 'C': 위치[2,3,4] => 갭[2,0,0,3]이 되어야 함.
 	// (갭 구하는 공식: 위치 인덱스 차 - 1)
-	const charOccurredAt = map.get('C');
-	const gap = [charOccurredAt[0]];
-	for (let i = 0; i < charOccurredAt.length; i++) {
-		gap.push((charOccurredAt[i + 1] ?? s.length) - charOccurredAt[i] - 1);
-	}
-	// gap.push(s.length - charOccurredAt[charOccurredAt.length - 1]); // 위의 for문에서 처리하였으므로 괜찮음.
-	console.log(gap);
-
-	// 3. 예를 들어 k=2라면 갭[2,0,0,3] 중 가능한 조합(갭들을 더해서 <= 2가 되는 조합)은: [2], [2,0], [2,0,0], [0,0], [0]이 가능하다. 이 중 최대한 '여러번' 더하는 조합은 [2,0,0]이며, 따라서 최대 부분문자열 길이는 [2,0,0]에 존재하는 문자 char의 개수 3개 + k = 5가 된다.
-	// 만약 k=3이라면? 갭[2,0,0,3] 중 가능한 '여러번' 더하는 조합은 [2,0,0]과 [0,0,3]이며, 어느쪽으로 하든지 char의 개수 3개 + k = 5가 된다. 
-	// 그런데 만약 k=3이고 갭[2,0,0,3,0]이었다면. 가능한 '여러번' 더하는 조합은 [2,0,0]과 [0,0,3,0]이며 이 때 존재하는 char의 개수는 [0,0,3,0]의 4개다. 따라서 최대 부분문자열 길이는 4 + k = 7이 된다. 
-	// 최선의 조합을 이루는 갭들이 전부 중간에 있는 것들이라면 어떨까? 예를 들어 k=2이고 갭[2,0,1,0,0,1,0,2]일 때, 가능한 '여러번' 더하는 조합은 [2,0], [0,1,0,0,1,0], [0,2]이다. 최선의 조합인 [0,1,0,0,1,0]에게는 char가 7개 있다. 
-	// 일반화해보면: 가장 많은 갭을 더하여 만들 수 있는 '최선의 조합'이 
-	// 		1) gap[]의 양 가장자리를 모두 포함한다면 최대 부분문자열 길이는 "최선의 조합[]의 길이 - 1" + k가 되고, 
-	// 		2) gap[]의 한쪽 가장자리만을 포함한다면 최대 부분문자열 길이는 "최선의 조합[]의 길이" + k가 되며,
-	// 		3) gap[]의 가장자리 요소를 포함하지 않는다면 최대 부분문자열 길이는 "최선의 조합[]의 길이 + 1" + k가 된다. 
-	
-	// 따라서 '가능한 여러번 더한 최선의 갭 조합'을 구하면 된다. 즉, gap[]의 부분 배열 중 더해서 <= k가 될 수 있는 가장 긴 연속된 부분 배열을 구하자. 
-	let left = right = 0; // 두 포인터
-	let gapSum = 0;
 	let maxLength = {
 		length: 0, isLeftEdge: true, isRightEdge: false
 	};
-	for (; right < gap.length; right++) {
-		gapSum += gap[right];
-		// 합계가 k '이하'가 될 때까지
-		while (gapSum > k) {
-			// "left 포인터 ~ k 초과가 되어 멈춘 right 포인터 직전"까지가 바로 가능한 연속된 갭 조합이므로 maxLength를 업데이트하고
-			maxLength.length = Math.max(maxLength.length, right - left + 1);
-			maxLength.isLeftEdge = false;
-			// 합계에서 삭감하고 left 포인터 한 칸 전진
-			gapSum -= gap[left];
-			left++;
+	for (let char of map.keys()) {
+		const charOccurredAt = map.get(char);
+		const gap = [charOccurredAt[0]];
+		for (let i = 0; i < charOccurredAt.length; i++) {
+			gap.push((charOccurredAt[i + 1] ?? s.length) - charOccurredAt[i] - 1);
+		}
+		// gap.push(s.length - charOccurredAt[charOccurredAt.length - 1]); // 위의 for문에서 처리하였으므로 괜찮음.
+		// console.log(gap);
 
-			if (right === gap.length - 1) {
-				maxLength.isRightEdge === true;
+		// 3-1. gap의 총합보다 k가 크거나 같다면 ('바꿔줘야 할 문자'들보다 바꿀 찬스가 더 많다는 뜻이므로) 그냥 s 총길이를 반환한다:
+		const gapTotalSum = gap.reduce((sum, val) => sum + val);
+		if (gapTotalSum <= k) return s.length;
+	
+		// 3. 예를 들어 k=2라면 갭[2,0,0,3] 중 가능한 조합(갭들을 더해서 <= 2가 되는 조합)은: [2], [2,0], [2,0,0], [0,0], [0]이 가능하다. 이 중 최대한 '여러번' 더하는 조합은 [2,0,0]이며, 따라서 최대 부분문자열 길이는 [2,0,0]에 존재하는 문자 char의 개수 3개 + k = 5가 된다.
+		// 만약 k=3이라면? 갭[2,0,0,3] 중 가능한 '여러번' 더하는 조합은 [2,0,0]과 [0,0,3]이며, 어느쪽으로 하든지 char의 개수 3개 + k = 6이 된다. 
+		// 그런데 만약 k=3이고 갭[2,0,0,3,0]이었다면. 가능한 '여러번' 더하는 조합은 [2,0,0]과 [0,0,3,0]이며 이 때 존재하는 char의 개수는 [0,0,3,0]의 4개다. 따라서 최대 부분문자열 길이는 4 + k = 7이 된다. 
+		// 최선의 조합을 이루는 갭들이 전부 중간에 있는 것들이라면 어떨까? 예를 들어 k=2이고 갭[2,0,1,0,0,1,0,2]일 때, 가능한 '여러번' 더하는 조합은 [2,0], [0,1,0,0,1,0], [0,2]이다. 최선의 조합인 [0,1,0,0,1,0]에게는 char가 7개 있다. 최대 부분묹열 길이는 7 + k = 9.
+		// 일반화해보면: 가장 많은 갭을 더하여 만들 수 있는 '최선의 조합'이 
+		// 		1) gap[]의 양 가장자리를 모두 포함한다면 최대 부분문자열 길이는 "최선의 조합[]의 길이 - 1" + k가 되고, 
+		// 		2) gap[]의 한쪽 가장자리만을 포함한다면 최대 부분문자열 길이는 "최선의 조합[]의 길이" + k가 되며,
+		// 		3) gap[]의 가장자리 요소를 포함하지 않는다면 최대 부분문자열 길이는 "최선의 조합[]의 길이 + 1" + k가 된다. 
+		
+		// 따라서 '가능한 여러번 더한 최선의 갭 조합'을 구하면 된다. 즉, gap[]의 부분 배열 중 더해서 <= k가 될 수 있는 가장 긴 연속된 부분 배열을 구하자. 
+		let left = right = 0; // 두 포인터
+		let gapSum = 0;
+
+		for (; right < gap.length; right++) {
+			gapSum += gap[right];
+			// 합계가 k '이하'가 될 때까지
+			while (gapSum > k) {
+				// "left 포인터 ~ k 초과가 되어 멈춘 right 포인터 직전"까지가 바로 가능한 연속된 갭 조합이므로 maxLength를 업데이트하고
+				// maxLength.length = Math.max(maxLength.length, right - left);
+				// maxLength.isLeftEdge = false;
+	
+				if (right - left > maxLength.length) {
+					maxLength.length = right - left;
+					// maxLength.isLeftEdge = left === 0;
+					maxLength.isLeftEdge = !left;
+					maxLength.char = char;
+					maxLength.gap = gap;
+				}
+				// 합계에서 삭감하고 left 포인터 한 칸 전진
+				gapSum -= gap[left];
+				left++;
+	
+				// if (right === gap.length - 1) {
+				// 	maxLength.isRightEdge === true;
+				// }
+				// => max의 isRight을 언제 업데이트하지?! isLeft도 저렇게 업데이트하는 거 맞나? => for루프 나가서 마지막 부분문자열 체크해야할 때 하자. 
 			}
-			// => max의 isRight을 언제 업데이트하지?! isLeft도 저렇게 업데이트하는 거 맞나? 
+		}
+		// 마지막으로 옮긴 left포인터에서부터 시작하여 만들 수 있는 부분문자열을 마지막으로 계산할 때:
+		let lastSubLength = gap.length - left;
+		if (lastSubLength > maxLength.length) { // === 라면, 굳이 끝(가장자리)에 걸친 조합을 선택해야할 필요가 없다. 
+			maxLength.length = lastSubLength;
+			maxLength.isRightEdge = true;
+			maxLength.isLeftEdge = !left;
 		}
 	}
-	
+	console.log(maxLength);
+
+	// 4. 최종 결과 maxLength가, 양쪽 가장자리를 포함하고 있다면 .length - 1 + k가 되고, 한 쪽 가장자리만 포함하면 거기서 +1, 어느 가장자리도 포함하고 있지 않다면 거기서 또 +1을 한 결과를 반환한다. 
+	// => 단, 
+	if (maxLength.isLeftEdge && maxLength.isRightEdge) {
+		return maxLength.length - 1 + k;
+	} else if (!maxLength.isLeftEdge && !maxLength.isRightEdge) {
+		return maxLength.length + 1 + k;
+	} else {
+		return maxLength.length + k;
+	}
 }
+// => 풀었다아아!!!!!!
+
+// 위의 해법 좀더 정리:
+function solution3(s, k) {
+	// edge 케이스 1) s의 길이가 최소값인 경우: s.length가 1이면 (k가 0이든 1이든) 1을 반환한다.
+	// edge 케이스 2) k가 최대값인 경우: k가 s.length와 같아면 그냥 s.length를 반환한다. (그 밖의 상황에는 보통 k + 1을 반환한다.) 
+	if (s.length <= 1 || k === s.length) return s.length;
+
+	// 1. 각 문자별로 등장 위치를 저장하는 {문자: [인덱스1, 인덱스2, ...]} map을 만든다.
+	const map = new Map();
+	for (let i = 0; i < s.length; i++) {
+		const char = s[i];
+		if (map.has(char)) {
+			map.get(char).push(i);
+		} else {
+			map.set(char, [i]);
+		}
+	}
+
+	let maxSubString = {
+		length: 0, isLeftEdge: true, isRightEdge: false
+	};
+	
+	// 2. map에 담긴 문자를 순회하며 각 등장 위치간의 차를 구하여 배열 gap에 따로 저장한다. (예) 'C'의 위치[2,3,4]일 때: 갭[2,0,0,3]이 되어야 함.
+	for (let char of map.keys()) {
+		const charOccurredAt = map.get(char);
+		const gap = [charOccurredAt[0]];
+		for (let i = 0; i < charOccurredAt.length; i++) {
+			// => 갭 구하는 공식: 위치 인덱스 차 - 1
+			gap.push((charOccurredAt[i + 1] ?? s.length) - charOccurredAt[i] - 1);
+		}
+		
+		// 2-1. gap의 총합보다 k가 크거나 같다면 ('바꿔줘야 할 문자'들보다 바꿀 찬스가 더 많다는 뜻이므로) 그냥 s 총길이를 반환한다.
+		const gapTotalSum = gap.reduce((sum, val) => sum + val);
+		if (gapTotalSum <= k) return s.length;
+
+		// 3. gap[]의 부분 배열 중 더해서 <= k가 될 수 있는 가장 긴 연속된 부분 배열을 구한다.
+		let left = right = 0;
+		let gapSum = 0;
+
+		for (; right < gap.length; right++) {
+			gapSum += gap[right];
+
+			// 더해나가다가 k를 초과하게 되면 합계가 k '이하'가 될 때까지
+			while (gapSum > k) {
+				let currLength = right - left;
+				if (currLength > maxSubString.length) {
+					maxSubString.length = currLength;
+					maxSubString.isLeftEdge = !left;
+				}
+				gapSum -= gap[left];
+				left++;
+			}
+		}
+		// 3-1. 마지막으로 옮긴 left 포이터에서부터 시작하여 만들 수 있는 부분무자열을 마지막으로 측정한다.
+		let lastLength = right - left;
+		if (lastLength > maxSubString.length) {
+			maxSubString.length = lastLength;
+			maxSubString.isRightEdge = true;
+			maxSubString.isLeftEdge = !left;
+		}
+	}
+
+	// 4. 최종 결과인 maxSubString이, 양쪽 가장자리를 포함하고 있다면 .length - 1 + k를, 한 쪽 가장자리만 포함하면 거기서 +1, 어느 가장자리도 포함하지 않는다면 거기서 또 +1을 한 결과를 반환한다.
+	if (maxSubString.isLeftEdge && maxSubString.isRightEdge) {
+		return maxSubString.length - 1 + k;
+	} else if (!maxSubString.isLeftEdge && !maxSubString.isRightEdge) {
+		return maxSubString.length + 1 + k;
+	} else {
+		return maxSubString.length + k;
+	}
+}
+
 
 module.exports.solution = solution2;
 
@@ -209,3 +314,12 @@ function characterReplacement(s, k) {
 	// 최종 길이를 반환한다.  
     return maxlen; 
 };
+/* 테스트 결과: 
+Runtime
+69ms
+Beats 95.22%of users with JavaScript
+
+Memory
+42.54mb
+Beats 69.11%of users with JavaScript
+*/

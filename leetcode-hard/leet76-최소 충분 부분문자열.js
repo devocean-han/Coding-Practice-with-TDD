@@ -50,7 +50,7 @@ Follow up: Could you find an algorithm that runs in O(m + n) time?
 function solution(s, t) {
 	if (s.length < t.length) return '';
 
-	// t의 맵을 만들어봄 or ...?
+	// t의 (해시)맵을 만든다. 
 	const tMap = {};
 	for (let char of t) tMap[char] = (tMap[char] ?? 0) + 1;
 
@@ -75,7 +75,7 @@ function solution(s, t) {
 		}
 		// 여기서 console을 찍어보는 게 제일 알맞다.
 		// s: "ADOBECODEBANC", t: "ABC"
-		console.log(`left: ${left}, right: ${right}, subString: "${s.slice(left, right + 1)}", validCharLength: ${validCharLength}\ntMap: ${Object.entries(tMap)}`)
+		// console.log(`left: ${left}, right: ${right}, subString: "${s.slice(left, right + 1)}", validCharLength: ${validCharLength}\ntMap: ${Object.entries(tMap)}`)
 
 		// 3. 최소 길이 비교
 		if (validCharLength === 0) {
@@ -88,8 +88,6 @@ function solution(s, t) {
 			if (tMap[leftChar] !== undefined) {
 				tMap[leftChar]++;
 			}
-			// let minLeft = left - 1;
-			// minLength = Math.min(minLength, right - (left - 1) + 1);
 			if (right - (left - 1) + 1 < minLength) {
 				minLength = right - (left - 1) + 1;
 				minLeft = left - 1;
@@ -98,7 +96,6 @@ function solution(s, t) {
 		} else {
 			right++;
 		}
-		
 	}
 
 	return minLength <= s.length ? s.slice(minLeft, minRight + 1) : '';

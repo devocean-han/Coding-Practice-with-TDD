@@ -105,19 +105,26 @@ module.exports = {
 
 // 
 function solution2(list1, list2) {
+	// 새로이 반환할 링크드 리스트의 head를 만들고 덧붙이는 노드들을 가리킬 포인터가 head를 가리키게 만든다. 
 	let resultHead = { val: -1, next: null };
 	let pointer = resultHead;
 
+	// list1과 list2가 노드를 가지는 동안
 	while (list1 && list2) {
+		// list2의 값이 더 작으면 반환할 링크드 리스트에 list2의 현재 노드를 덧붙이고 list2의 head는 list2의 다음 노드를 가리키게 한다.
 		if (list1.val > list2.val) {
 			pointer.next = list2;
 			list2 = list2.next;
 		} else {
+		// list1의 값이 더 작으면 반환할 링크드 리스트에 list1의 현재 노드를 덧붙이고 list1의 head는 list1의 다음 노드를 가리키게 한다.
 			pointer.next = list1;
 			list1 = list1.next;
 		}
+		// 새로이 만드는 링크드 리스트의 맨 뒤에 다음 노드를 붙일 수 있도록 '덧붙이는 노드들을 가리키는' 포인터가 next를 가리키게 만든다. 
 		pointer = pointer.next;
 	}
+
+	// 두 list 중 남은 노드를 몽땅 붙여준다. 
 	pointer.next = list1 || list2;
 
 	return resultHead.next;

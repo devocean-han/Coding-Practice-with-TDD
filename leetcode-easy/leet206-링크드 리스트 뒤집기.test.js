@@ -139,32 +139,31 @@ describe('Reverse Linked List', () => {
 // 	});
 // });
 
-// describe('Reverse Linked List: 링크드 리스트를 통째로 넣어 테스트', () => {
-// 	// let inputLinkedList = new LinkedList(new ListNode(null));
-// 	// let outputLinkedList = new LinkedList(new ListNode(null));
-// 	let inputLinkedList;
-// 	let outputLinkedList;
-// 	beforeEach(() => {
-// 		inputLinkedList = new LinkedList(new ListNode(null));
-// 		outputLinkedList = new LinkedList(new ListNode(null));
-// 	});
-
-// 	// [] => []
-// 	// { head: inputLinkedList, answer: outputLinkedList },
-// 	let head = inputLinkedList;
-// 	let answer = outputLinkedList;
-// 	let outputHeadNode = solution(head.head);
-// 	test(`should return [${answer.head.printVals()}] and(but) the output is [${outputHeadNode.printVals()}]. Given: head: [${head.head.printVals()}]`, () => {
-// 		// console.dir(inputLinkedList);
-// 		expect(outputHeadNode).toEqual(answer.head);
-// 	});
+describe('Reverse Linked List: 링크드 리스트를 통째로 넣어 테스트', () => {
 	
-// 	// [1, 2] => [2, 1]
-// 	// { head: inputLinkedList.pushVal(1).pushVal(2), answer: outputLinkedList.pushVal(2).pushVal(1) },
-// 	head = inputLinkedList.pushVal(1).pushVal(2);
-// 	answer = outputLinkedList.pushVal(2).pushVal(1);
-// 	outputHeadNode = solution(head.head);
-// 	test(`should return [${answer.head.printVals()}] and(but) the output is [${outputHeadNode.printVals()}]. Given: head: [${head.head.printVals()}]`, () => {
-// 		expect(outputHeadNode).toEqual(answer.head);
-// 	});
-// });
+	let inputLinkedList;
+	let outputLinkedList;
+	beforeEach(() => {
+		inputLinkedList = new LinkedList(new ListNode(null));
+		outputLinkedList = new LinkedList(new ListNode(null));
+	});
+
+	// [] => []
+	// { head: inputLinkedList, answer: outputLinkedList },
+	let head = inputLinkedList;
+	let answer = outputLinkedList;
+	let outputHeadNode = solution(head.head);
+	test(`should return [${answer.head.printVals()}] and(but) the output is [${outputHeadNode.printVals()}]. Given: head: [${head.head.printVals()}]`, () => {
+		// console.dir(inputLinkedList);
+		expect(outputHeadNode).toEqual(answer.head);
+	});
+	
+	// [1, 2] => [2, 1]
+	// { head: inputLinkedList.pushVal(1).pushVal(2), answer: outputLinkedList.pushVal(2).pushVal(1) },
+	head = inputLinkedList.pushVal(1).pushVal(2);
+	answer = outputLinkedList.pushVal(2).pushVal(1);
+	outputHeadNode = solution(head.head);
+	test(`should return [${answer.head.printVals()}] and(but) the output is [${outputHeadNode.printVals()}]. Given: head: [${head.head.printVals()}]`, () => {
+		expect(outputHeadNode).toEqual(answer.head);
+	});
+});

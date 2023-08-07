@@ -181,20 +181,19 @@ function solution2(head) {
 
 // 주어진 리스트를 반절 잘라 엮어내는 방법. 
 function solution3(head) {
-	// 1. 주어진 리스트를 반절로 자른다. 길이가 홀수라면 앞의 반절이 1개를 더 가져가도록 자르고, 후 반절을 변수에 저장한다. 
+	// 1. 주어진 리스트를 반절로 자른다. 길이가 홀수라면 앞의 반절이 1개를 더 가져가도록 자르고, '후 반절'을 변수에 저장한다. 
 	let right = split(head);
 
-	// 2. 저장한 후 반절을 뒤집는다. 
+	// 2. 저장한 '후 반절'을 뒤집는다. 
 	right = reverse(right);
 
-	// 3. 전 반절과 뒤집은 후 반절을 병합한다. 
+	// 3. '전 반절'과 '뒤집은 후 반절'을 병합한다. 
 	merge(head, right);
-	return merge(head, right); // 테스트 코드 실행용 반환 
+	// return merge(head, right); // 테스트 코드 실행용 반환 
 }
 
 // 1. 링크드 리스트의 head가 되는 ListNode를 받아 반절(길이가 홀수라면 2로 나누고 내림한)로 자르고 후 반절을 반환
 function split(node) {
-	// 
 	let fast = node;
 	let slow = node;
 

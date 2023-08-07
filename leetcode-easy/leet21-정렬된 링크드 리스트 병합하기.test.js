@@ -1,5 +1,7 @@
 const { solution, ListNode } = require('./leet21-정렬된 링크드 리스트 병합하기');
 
+
+// -> 테스트가 돌아가지 않는다. 뭔가 메모리 초과 오류가 발생한다. LeetCode 사이트에서 정답을 재출하면 잘 돌아간다('다른 해설' solution2의 경우). 
 describe('Merge Two Sorted Linked Lists', () => {
 	let node1 = new ListNode(null);
 	let node2 = new ListNode(0);

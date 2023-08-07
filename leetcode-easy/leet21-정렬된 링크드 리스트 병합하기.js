@@ -99,7 +99,7 @@ function solution(list1, list2) {
 }
 
 module.exports = {
-	solution: solution,
+	solution: solution2,
 	ListNode,
 }
 

@@ -99,6 +99,10 @@ ex) head[1], n=1
 	2+3. 아직 '타겟 2번' 포인터가 null이기 때문에,
 	4+5. 'head'를 두 번째 노드인 null에 연결시키면 head=null이 되고, 이를 반환하면 된다. 
 */
+
+// (해결!)
+// Time complexity: O(N)
+// Space complexity: O(1?)
 function solution(head, n) {
 	//  1. 포인터 '정찰조 1번'을 먼저 n번째 노드에 도달하도록 전진시킨다. 최소 n번째 노드가 있다는 것은 보장된다.
 	let 정찰조 = head;
@@ -151,4 +155,25 @@ function solution2(head, n) {
 module.exports = {
 	solution,
 	NodeList,
+}
+
+// 같은 논리 살짝 다른 풀이
+function solution3(head, n) {
+	let scout = head;
+	let target = head;
+	for (let i = 0; i < n; i++) {
+		scout = scout.next;
+	}
+	// n이 주어진 링크드 리스트의 길이와 같아서 이미 끝 노드를 지나 null에 도달해버린 경우: 첫 번째 노드가 지워야 할 타겟 노드가 되므로 head.next를 반환하면 된다.
+	if (!scout) return head.next;
+
+	// 그렇지 않다는 것은 지금 scout 노드가 null이 아니라는 뜻. 따라서 while 조건문의 유효함이 보장됨. 
+	while (scout.next) {
+		scout = scout.next;
+		target = target.next;
+	}
+
+	target.next = target.next.next;
+	
+	return head;
 }

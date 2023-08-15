@@ -43,10 +43,59 @@ class ListNode {
 // ex) [1,1,2,3] => [2,3]
 
 
+// 첫 번째와 두 번째 (미완)풀이를 바탕으로 새로운 풀이:
+// 요점 1. 먼저 pointer는 검사 대상이 되는 노드의 전에 위치해야 한다.
+// 요점 2. 중복되는 수인지를 기억하는 것도 맞다. => 중복되는 수였다면 '제거(스킵)'함으로써 pointer를 이동하는 것이 생략되었을 테니 그냥 넘어가고, 중복되는 수가 아닌 경우에 pointer를 이동하며 동시에 '중복되는지 기억할 수'를 업데이트한다.
+// 풀었다..!!!!!
+function solution4(head) {
+	if (!head || !head.next) return head;
+
+	let prevHead = new ListNode(-101, head);
+	let pointer = prevHead;
+
+	// 1안: '중복 수'를 바깥에 기억하기: 
+	let currentVal = pointer.next.val;
+	// 		+ 현재 수가 처음인지 아닌지 기억하기: 
+	let isNewNum = true;
+
+	// pointer의 '다음'과 '다음다음' 노드를 비교하니까 '다음 두 노드가 존재하는 동안만' 검사할 수도 있고,.. 이렇게 하면 pointer 뒤로 마지막 1개가 남았을 때(지우거나 pointer를 옮김으로 인하여) 자동으로 while문을 벗어나게 된다. 마지막 1개 노드는 pointer.next이고... pointer는 이전 자리에서 옮겨왔거나 그 자리 그대로에서 다음 노드를 삭제했을 것이다. 즉, [1(p),2,2,3]=>[1(p),3] 이렇게 삭제로 인해 짧아졌거나, [1(p),2,3]=>[1,2(p),3] 이렇게 옮겨와서 마지막 노드가 1개까지 줄었거나 둘 중 하나다. 음... [1(p),2,2,2]면 어떡하지? 아니면 [1(p),3,3]이면? [1(p),2,2,2]=>[1(p),2(지워야함)]인데 루프를 완료하게 되고, [1(p),3,3]=>[1(p),3(지워야함)]인데 루프를 완료하게 된다. 결국 문제는 마지막 숫자가 지워져야 하는데 남아있는 경우로 수렴되는 듯 하다. 그렇다면 while루프를 돌고 나와서 마지막에 isNewNum=false라면 마지막 숫자도 지우는 것으로. 왜냐면 isNewNum이 false가 되는 지점은 '다음 두 노드'가 중복이라고 검사되는 때뿐이다. '지워져야할' 숫자가 끝에 남아있게 된다는 것은 이전에 그 수를 대상으로 중복이 일어났다는 것이고 그러면 isNewNum=false인 채로 남아있게 된다. 결국 isNewNum이 false인지만 while문 뒤에 마지막으로 검사하여 처리해주면 마지막에 남아있을지 모를 '지워져야 할' 숫자도 지울 수 있다는 얘기..! 맞을까? 
+	while (pointer.next && pointer.next.next) {
+		// 만약 다음 두 노드가 중복이면:
+		// 처음 발생한 중복일 수도, 아닐 수도 있다. => isNewNum을 무조건 false로 업데이트한다? 그리고 .next노드를 지운다. 
+		//		 '전에 중복 아님 -> 지금 중복'이면: [0,1(p),2,2]같은 경우로, 넘어올 때 처음에 currentVal=2(로 이미 업데이트한 상태), isNewNum=true인 상태이고 이제 isNewNum=false로 바뀌게 된다. 그리고 .next를 삭제.
+		// 		'전에 중복 -> 지금 중복'이면: [0(p),1(삭제대상),2,2]같은 경우로, 넘어올 때 currentVal=2, isNewNum=true인 상태에 [0(p),2,2]였을 것이고 이제 isNewNum=false로 바뀌게 된다. 
+		// 		=> 보니까 두 경우 모두 '현재 중복'이기만 하면 넘어올 때와 지금 변하는 것 모두 isNewNum=true->false인 것과 currentVal이 유지된다는 점에서 동일하다. 'isNewNum을 무조건 false로 업데이트한다'가 맞는 것이다.
+		if (pointer.next.val === pointer.next.next.val) {
+			isNewNum = false;
+			pointer.next = pointer.next.next;
+			// 이렇게만 하면 중복이었더라도 마지막 수는 제거되지 않는다. 진짜 '중복 수'를 기억해둬야 한다... 
+			// let currentVal = pointer.next.val;
+
+		// 그렇지 않고(중복이 아닌데) 다음 노드가 '중복됐던' 수라면:
+		// 두 노드가 서로 다른데 앞 노드가 '중복됐던' 수라면 뒷 노드는 isNewNum이 true가 맞다. 앞 노드는 isNewNum이 false임으로 인해 제거 대상이 된다. 제거 후 맞은 .next노드(=뒷 노드)를 currentVal로 업데이트해주고 isNewNum=true로 바꾼다.  
+		// (이후의 다음 노드와 비교해서 중복되면 isNewNum을 false로 업데이트 + 지우기를 진행하고, 중복이 아니라면 isNewNum이 true임으로 인해 '지우지 않고' pointer를 옮긴다.)
+		} else if (!isNewNum) {
+			pointer.next = pointer.next.next;
+			currentVal = pointer.next.val;
+			isNewNum = true;
+		// 그렇지 않고(중복이 아닌데) 다음 노드가 처음 나오는 수라면
+		// 그렇다면 isNewNum=true인 채로 넘어왔다는 얘기. .next와 .next.next가 중복도 아니고 .next의 isNewNum도 true라면, '지우지 않고' pointer를 옮겨야 한다. pointer를 옮겼으므로 currentVal도 옮긴 이후의 .next 값으로 업데이트해준다.  
+		} else {
+			pointer = pointer.next;
+			currentVal = pointer.next.val;
+			// 이미 isNewNum = true 이므로 손대지 않는다.
+		}
+	}
+
+	// 마지막, '지워졌어야 할' 노드 검사 후 삭제하기
+	if (!isNewNum) pointer.next = pointer.next.next;
+
+	return prevHead.next;
+}
 
 
 
-
+// (미완)두 번째 풀이: (왜 안되는지 모르겠음. 이렇게 하면 두 개 테스트가 통과하지 못하고, 저렇게 하면 다른 두 개가 못 통과하고, 요렇게 하면 앞선 미통과 테스트에서 각각 하나씩이 통과하지 못한다. 얼핏 봐선 패턴도 못 찾겠고... 테스트 할 때도 디버거가 있으면 참 좋을텐데)
 
 // 1. 제일 처음 노드가 셋 이상 중복되는 경우를 생각해야 한다. ㅊ음 생각처럼 '처음 두 개가 중복이야? 그럼 둘 다 지워서 head를 next.next로 옮겨' 하면 다음 세 번째 노드가 여전히 같을 때 알아볼 방법이 없다. => 첫 노드 값을 기억하는 '-1번째 노드'를 임시로 만들어서 하면 이후 노드 논리와도 일관성이 있겠다!
 // 		=> 1-1. 첫 노드 값을 가지는 '임시 -1번 노드'를 만들어 left로 지정한다.
@@ -204,7 +253,7 @@ function solution(head) {
 }
 
 module.exports = {
-	solution: solution3,
+	solution: solution4,
 	ListNode,
 }	
 

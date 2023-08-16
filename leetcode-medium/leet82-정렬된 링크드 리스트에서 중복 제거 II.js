@@ -1,5 +1,28 @@
-/* 
+/* 82. Remove Duplicates from Sorted List II
+문제: https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/description/
+LeetCode에 포스팅한 풀이법: https://leetcode.com/problems/remove-duplicates-from-sorted-list-ii/solutions/3911069/javascript-solution-with-brief-explanation-time-o-n-space-o-1/
 
+Medium
+
+Given the head of a sorted linked list, delete all nodes that have duplicate numbers, leaving only distinct numbers from the original list. Return the linked list sorted as well.
+
+
+Example 1:
+
+Input: head = [1,2,3,3,4,4,5]
+Output: [1,2,5]
+
+Example 2:
+
+Input: head = [1,1,1,2,3]
+Output: [2,3]
+
+
+Constraints:
+
+The number of nodes in the list is in the range [0, 300].
+-100 <= Node.val <= 100
+The list is guaranteed to be sorted in ascending order.
 
 */
 
@@ -41,6 +64,46 @@ class ListNode {
 
 // => 주어진 (정렬된) 링크드 리스트에서 중복되는 수가 발생하면 그 수 자체를 하나도 남겨놓지 않고 삭제한 결과를 반환하기
 // ex) [1,1,2,3] => [2,3]
+
+// 아래 solution4에 영어 주석으로 정리한 버전(해설로 제출한 버전은 더 정리되어 있음):
+function deleteDuplicates(head) {
+	// 0. If given linked list's size is 0 or 1, return head.
+	if (!head || !head.next) return head;
+
+	// 1. Set variables.
+	let prevHead = new ListNode(-101, head); // A temporary node to store referrence for return, pointing to the 'head' as the next node. Necessary since 'head(=the given first node)' itself could be a duplicate and removed. 
+	let pointer = prevHead;
+
+	let currentVal = pointer.next.val; // Current number being compared. Updated when 'pointer.next' encounter a new number. Necessary for checking if 'pointer.next' is the (end) duplicate number after removing leading duplicates.    
+	let isNewNum = true; // Whether the 'currentVal(=current number being compared)' is the first occurrence. Updated to false when duplicate occurs and to true when 'currentVal' is updated to a new value. Necessary to decide if a single 'pointer.next' value is the end(last of the series of) duplicates. If false, the node should be removed. 
+
+	// While there are at least two nodes remaining after the pointer, examine the following two nodes.
+	while (pointer.next && pointer.next.next) {
+		// 2-I. Pointer's next two nodes are duplicates: (1)remove the 'next' node. (2)update 'isNewNum' to false.
+		if (pointer.next.val === pointer.next.next.val) {
+			pointer.next = pointer.next.next;
+			isNewNum = false;
+
+		// 2-II. Pointer's next two nodes are different and the very next node was a duplicate number: (1)remove the 'next' node. (2)update 'currentVal' to the new next node's value. (3)update 'isNewNum' to true.
+		} else if (!isNewNum) {
+			pointer.next = pointer.next.next;
+			currentVal = pointer.next.val;
+			isNewNum = true;
+
+		// 2-III. Pointer's next two nodes are different and the very next node is not a duplicate number: (1)move(not remove) pointer to the next node. (2)update 'currentVal' to the new next node's value. (3)'isNewNum' doesn't have to be updated since it is already set to true.
+		} else {
+			pointer = pointer.next;
+			currentVal = pointer.next.val;
+			// isNewNum = true;
+		}
+	}
+
+	// 3. The last node could be 'the end duplicate' remained. This could happen since while loop above ends without checking the last node(when 'pointer.next.next' becomes null). Here the pointer is placed at the node second to last, so check if 'pointer.next(=the last node)' is duplicate and if so, remove it.  
+	if (!isNewNum) pointer.next = pointer.next.next;
+
+	// 4. Return 'prevHead'.next.
+	return prevHead.next;
+}
 
 
 // 첫 번째와 두 번째 (미완)풀이를 바탕으로 새로운 풀이:

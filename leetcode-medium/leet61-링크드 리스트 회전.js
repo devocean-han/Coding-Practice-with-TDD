@@ -183,33 +183,45 @@ module.exports = {
 	ListNode,
 }
 
-// 배열을 사용하지 않고도 할 수 있다는데..! 
+// 배열을 사용하지 않고(=메모리를 덜 낭비하고)도 할 수 있다는데..!
+// => 그냥 (1)원래 리스트의 마지막 노드를 노가다로 찾아가고, (2)다시 처음부터 시작해서 '새로운 리스트의 마지막이 될 노드(=뒤에서 k+1번째 노드)'를 또 노가다로 찾아간다. 그렇게 두 번만 순회하면 해결할 수 있다.
+// Time complexity: O(N)
+// Space complexity: O(1) <- new!!
 function notArraySolution(head, k) {
 	if (!head || !head.next) return head;
-  
+
 	let totalNode = 0;
 	let pointer = head;
 	let lastNode;
-  
+
+	// 배열을 만들지 않고 그냥 pointer를 끝까지 옮긴다. 
+	// 마지막 노드를 lastNode라는 이름으로 가리켜둔다. 
 	while (pointer) {
-	  totalNode++;
-	  lastNode = pointer;
-	  pointer = pointer.next;
+		totalNode++;
+		lastNode = pointer;
+		pointer = pointer.next;
 	}
-  
-	k %= totalNode;
-  
+
+	// k를 전체 노드 수로 나눈 나머지를 새로운 k로 삼고, k가 전체 노드 수의 배수임이 확인되면 원래 리스트 그대로 반환한다(회전시켜도 원래 모습 그대로가 될 것이므로).
+	k %= totalNode; // k: 0 ~ totalNode-1 사이의 수
 	if (k === 0) return head;
   
+	// 마지막 노드에 head를 다음 노드로 연결한다.
 	lastNode.next = head;
+	// (=> 현재 원형 리스트가 된 상태)
   
+	// 새롭게 마지막이 될 노드(뒤에서 k+1번째 노드)를 찾아간다
+	// = 앞에서부터 totalNode - k번째 노드를 찾아간다.
 	let newEndNode = head;
 	for (let i = 0; i < totalNode - k - 1; i++) {
+		// (앞에서부터 totalNode-k번째 노드를 찾으려면 첫 번째 노드에서 시작하여 totalNode-k-1번을 점프함)
 	  newEndNode = newEndNode.next;
 	}
   
+	// '새롭게 마지막이 될 노드' 뒤를 끊어서 null로 만들기 전에, '새롭게 처음이 될 노드'는 '새롭게 마지막이 될 노드'의 바로 다음 노드였을 것. 얘를 새 head로 삼고서 끊어준다. 
 	head = newEndNode.next;
 	newEndNode.next = null;
   
+	// head를 반환한다.
 	return head;
   } 

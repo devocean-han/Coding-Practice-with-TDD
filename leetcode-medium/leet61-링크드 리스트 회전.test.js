@@ -31,3 +31,37 @@ describe('Rotate List', () => {
 		});
 	});
 });
+
+// 아래는 ChatGPT가 추천해준 테스트 코드이다: 
+describe("arraySolution", () => {
+	it("should handle empty list", () => {
+		const result = solution(null, 3);
+		expect(result).toBe(null);
+	});
+
+	it("should handle single node", () => {
+		const head = new ListNode(1);
+		const result = solution(head, 2);
+		expect(result).toBe(head);
+	});
+
+	it("should rotate linked list correctly", () => {
+		const head = new ListNode(1);
+		head.next = new ListNode(2);
+		head.next.next = new ListNode(3);
+		head.next.next.next = new ListNode(4);
+		head.next.next.next.next = new ListNode(5);
+
+		const result = solution(head, 2);
+
+		// Check if the list is correctly rotated
+		expect(result.val).toBe(4);
+		expect(result.next.val).toBe(5);
+		expect(result.next.next.val).toBe(1);
+		expect(result.next.next.next.val).toBe(2);
+		expect(result.next.next.next.next.val).toBe(3);
+		expect(result.next.next.next.next.next).toBe(null);
+	});
+
+	// 처음에 테스트 코드 작성할 때 ListNode를 어떻게 연결지어서 만드나 고민이 많았는데 이렇게도 작성하는구나 새로운 방법을 알았다. 
+});

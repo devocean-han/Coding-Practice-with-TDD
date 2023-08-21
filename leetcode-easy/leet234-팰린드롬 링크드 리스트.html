@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Visualization</title>
+  <!-- Chart.js 라이브러리 추가 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- axios 라이브러리 추가 -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <!-- 막대 그래프를 그릴 canvas 엘리먼트 -->
+  <canvas id="chart" width="400" height="200"></canvas>
+
+  <script>
+	// const axios = require('axios');
+	// const cheerio = require('cheerio');
+	
+	const url = 'https://leetcode.com/problems/palindrome-linked-list/submissions/1027212340/?envType=list&envId=rus4c4ci';
+
+	axios.get(url)
+	.then(response => {
+		const html = response.data;
+
+		const data = [];
+		const $ = cheerio.load(html);
+		$('.table-row').each((index, element) => {
+			const status = $(element).find('.status').text();
+			const language = $(element).find('.language').text();
+			const runtime = $(element).find('.runtime').text();
+			const memory = $(element).find('.memory').text();
+			const time = $(element).find('.time').text();
+			data.push({ index, status, language, runtime, memory, time });
+		});
+
+		// 시각화
+		const labels = data.map(entry => entry.index);
+		const runtimes = data.map(entry => parseFloat(entry.runtime));
+		const memories = data.map(entry => parseFloat(entry.memory));
+		const ctx = document.getElementById('chart').getContext('2d');
+
+		new Chart(ctx, {
+			type: 'bar',
+			data: {
+				labels: labels,
+				datasets: [{
+				label: 'Runtime (ms)',
+				data: runtimes,
+				backgroundColor: 'rgba(75, 192, 192, 0.2)',
+				borderColor: 'rgba(75, 192, 192, 1)',
+				borderWidth: 1
+				}]
+			},
+			options: {
+				scales: {
+				y: {
+					beginAtZero: true
+				}
+				}
+			}
+		});
+	})
+	.catch(error => {
+		console.error('Error Fetching HTML:', error);
+	});
+	
+	// let headers = ['Status', 'Language', 'Runtime', 'Memory', 'Time', 'Notes'];
+    // var data = [
+    //   ['Accepted', 'JavaScript', '112 ms', '69.2 MB', 'a few seconds ago', ''],
+    //   ['Accepted', 'JavaScript', '108 ms', '69.1 MB', 'an hour ago', ''],
+    //   ['Accepted', 'JavaScript', '117 ms', '77.6 MB', 'Aug 19, 2023', ''],
+    //   ['Accepted', 'JavaScript', '116 ms', '77.2 MB', 'Aug 19, 2023', ''],
+    //   ['Runtime Error', 'JavaScript', 'N/A', 'N/A', 'Aug 19, 2023', '']
+    // ];
+
+    // var labels = data.map(function(row) { return row[0]; });
+    // var runtimes = data.map(function(row) { return parseInt(row[2].split(' ')[0]); });
+    // var memories = data.map(function(row) { return parseFloat(row[3].split(' ')[0]); });
+
+    // var ctx = document.getElementById('chart').getContext('2d');
+    // var myChart = new Chart(ctx, {
+    //   type: 'bar',
+    //   data: {
+    //     labels: labels,
+    //     datasets: [
+    //       {
+    //         label: 'Runtime',
+    //         data: runtimes,
+    //         backgroundColor: 'rgba(75, 192, 192, 0.2)',
+    //         borderColor: 'rgba(75, 192, 192, 1)',
+    //         borderWidth: 1
+    //       },
+    //       {
+    //         label: 'Memory',
+    //         data: memories,
+    //         backgroundColor: 'rgba(255, 99, 132, 0.2)',
+    //         borderColor: 'rgba(255, 99, 132, 1)',
+    //         borderWidth: 1
+    //       }
+    //     ]
+    //   },
+    //   options: {
+    //     scales: {
+    //       y: {
+    //         beginAtZero: true
+    //       }
+    //     }
+    //   }
+    // });
+  </script>
+</body>
+</html>

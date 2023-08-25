@@ -112,8 +112,8 @@ function solution(head: ListNode): boolean {
 // }
 
 // TypeScript의 기본 모듈 시스템은 ES6:
-// export solution;
-// export ListNode;
+// export { solution, ListNode };
+// export { ListNode };
 export default {
 	solution: solution,
 	ListNode,

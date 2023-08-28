@@ -122,6 +122,7 @@ function solution(target, position, speed) {
 		while (stack.length && stack[stack.length - 1] <= expectedTime[i]) stack.pop();
 		stack.push(expectedTime[i]);
 	}
+	console.log("stack: ", stack);
 
 	// 5. stack에 남은 원소의 개수가 만들어지는 '무리' 수이다. 
 	return stack.length;
@@ -154,7 +155,7 @@ function cleanSolution(target, position, speed) {
 	return stack.length;
 }
 
-module.exports.solution = carFleet;
+module.exports.solution = cleanSolution;
 
 // 다른 풀이: 
 /**

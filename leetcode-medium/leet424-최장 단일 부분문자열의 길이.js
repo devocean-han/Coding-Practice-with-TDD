@@ -281,7 +281,7 @@ function solution3(s, k) {
 }
 
 
-module.exports.solution = solution2;
+module.exports.solution = characterReplacement;
 
 // Sliding window
 // Time Complexity :  O(n)
@@ -289,26 +289,26 @@ module.exports.solution = solution2;
 function characterReplacement(s, k) {
 	// 사이즈 26인 map을 만든다.
 	var map = [26];
-	let largestCount = 0, beg = 0, maxlen = 0; // beg = '시작' 포인터
+	let largestCount = 0, left = 0, maxlen = 0; // left = '시작' 포인터
 	
     // '끝' 포인터를 인덱스 0부터 끝까지 순회한다
-    for (let end = 0; end < s.length; end++) {
-		const char = s[end];
+    for (let right = 0; right < s.length; right++) {
+		const char = s[right];
 		// map에 문자 char 등장 횟수를 저장한다
         map[char] = (map[char] || 0) + 1
 		// largestCount를 업데이트한다(기존 값과 현재까지의 등장 횟수 중 더 큰 것으로).
 		largestCount = Math.max(largestCount, map[char])
 		// 현재 '창문' 길이에서 char가 아닌 문자가 k보다 많으면 유효한 연속된 부분문자열이 될 수 없다. 즉, 
 		// '시작~끝' 길이 - '등장횟수 최고값'이 k보다 크면
-		if (end - beg + 1 - largestCount > k) {
+		if (right - left + 1 - largestCount > k) {
 			// map에서 '시작'문자의 값(=등장 횟수)을 1 줄이고
-			map[s[beg]] -= 1;
+			map[s[left]] -= 1;
 			// '시작' 포인터를 한 칸 전진한다. 
-			beg += 1;
+			left += 1;
 		}
 		
 		// '시작~끝' 길이(=연속 부분 문자열)의 역대 최고값을 갱신한다. 
-        maxlen = Math.max(maxlen, end - beg + 1);
+        maxlen = Math.max(maxlen, right - left + 1);
 	}
 	
 	// 최종 길이를 반환한다.  

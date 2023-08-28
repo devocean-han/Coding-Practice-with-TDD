@@ -51,6 +51,16 @@ function binarySolution(nums, target) {
         }
     }
 
+    // 마지막이 low[1,2,3]high에서 target=1인 상태라면 low[1]high 상태가 되어 끝.
+    // 마지막이 low[1,2,3]high에서 target=2인 상태라면 -> low[2,3]high -> low[2]high인 채로 while문 종료.
+    // 마지막이 low[1,2,3]high에서 target=3인 상태라면 -> low[2,3]high -> low[3]high인 채로 종료됨. 
+    // 
+    // 마지막이 low[1,2,3(mid),4]high에서 target=1인 상태라면 -> low[1,2(mid)]high -> low[1]high인 채로 종료됨. 
+    // 마지막이 low[1,2,3(mid),4]high에서 target=2인 상태라면 -> low[1,2(mid)]high -> low[2]high인 채로 종료됨. 
+    // 마지막이 low[1,2,3(mid),4]high에서 target=3인 상태라면 -> low[3,4(mid)]high -> low[3]high인 채로 종료됨. 
+    // 마지막이 low[1,2,3(mid),4]high에서 target=4인 상태라면 -> low[3,4(mid)]high -> low[4]high인 채로 종료됨. 
+    // 
+    // 마지막이 
     return nums[low] == target ? low : -1;
 }
 

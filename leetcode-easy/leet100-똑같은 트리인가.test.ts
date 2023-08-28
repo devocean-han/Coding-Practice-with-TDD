@@ -23,14 +23,35 @@ describe(`Same Tree`, () => {
 			expect(solution(tree1, tree2)).toBe(false);
 		});
 
-		// it.each(Array.from({ length: 16 }, (_, index) => index + 1))(
-		// 	`Both trees with %p nodes are the same`, (numNodes) => {
-		// 		tree1 = generateCompleteTree(numNodes);
-		// 		tree2 = generateCompleteTree(numNodes);
-		// 		expect(solution(tree1, tree2)).toBe(true);
-		// 		console.log(tree1.printTreeLevels().join('\n'));
-		// 	}
-		// );
+		it.each(Array.from({ length: 5 }, (_, index) => index + 1))(
+			`Both trees with %p nodes are the same`, (numNodes) => {
+				tree1 = generateCompleteTree(numNodes);
+				tree2 = generateCompleteTree(numNodes);
+				expect(solution(tree1, tree2)).toBe(true);
+				console.log(tree1.printTreeLevels().join('\n'));
+			}
+		);
+		// Array.from(arrayLike, mapFn?, thisArg?)
+		// => arrayLike: 배열 형태로 변환하려는 유사 배열 객체 혹은 이터러블 객체. 'length' 프로퍼티만 가지는 유사 배열 객체 { length: 5 }를 배열로 변환하였다.
+		// => mapFn: 배열의 각 요소를 변형하기 위한 매핑 함수. '_' 파라미터는 unknown이라고 하며 사용할 수 없는 값이다... 'index'에 0부터 4까지의 값이 전달되고, 결과적으로 [1,2,3,4,5]와 같이 생긴 배열이 생성된다. 
+
+		// test.each(data)(name, fn)
+		// => data: 반복할 데이터 세트. 배열로 줘야 하고, 각 데이터는 'name' 문자열과 'fn' 함수의 파라미터로 각각 전달된다. 
+		// => name: 각 데이터 세트에 대한 테스트 케이스의 이름을 나타내는 문자열. data 배열에서 각 요소 값을 '%p'같은 플레이스홀더에 하나씩 전달받는다. 
+		// => fn: 실제 테스트 로직을 담은 함수. data 배열에서 전달받은 각 요소 값을 매개변수로 전달받는다. 
+
+		// 플레이스홀더(placeholder): 변수의 이름을 동적으로 생성하는 데 사용되는 문법. %기호 다음에 붙는 문자가 특정 값으로 대체된다. test.each()와 플레이스홀더를 이용해 테스트 케이스의 이름을 동적으로 생성하는 기존의 [].forEach(({tree1, tree2, answer}) => { it(...) }) 방법을 대신할 수 있겠다!
+		// 예시:
+		test.each([
+			[1, 1, 2],
+			[1, 2, 3],
+		])(
+			'test.each()와 플레이스홀더 예시 테스트: Adding %i and %i equals %p',
+			(a, b, expected) => {
+				expect(a + b).toBe(expected);
+			}
+		);
+		
 		it(`print tree test`, () => {
 			tree1 = generateCompleteTree(16);
 			expect(solution(tree1, tree2)).toBe(false);
@@ -46,13 +67,6 @@ describe(`Same Tree`, () => {
 
 		const root = new TreeNode(1);
 		const queue = [root];
-		// if (numNodes <= 3) {
-		// 	root.left = new TreeNode(2);
-		// 	if (numNodes > 2) {
-		// 		root.right = new TreeNode(3);
-		// 	}
-		// 	return root;
-		// }
 		let count = 1;
 		while (count < numNodes) {
 			const current = queue.shift()!;
@@ -65,18 +79,6 @@ describe(`Same Tree`, () => {
 				queue.push(current.right);
 			}
 		}
-
-		// let current = root.left;
-		// let prev = root;
-		// for (let i = 2; i <= numNodes; i++) {
-		// 	if (i % 2 === 0) {
-		// 		current.left = new TreeNode(i);
-		// 	} else {
-		// 		current.right = new TreeNode(i);
-		// 		if ()
-		// 		current = current.left ? current.left : current;
-		// 	}
-		// }
 
 		return root;
 	}

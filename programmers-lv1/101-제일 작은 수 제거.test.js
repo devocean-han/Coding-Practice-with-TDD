@@ -1,4 +1,4 @@
-const { solution } = require('./013-제일 작은 수 제거');
+const { solution } = require('./101-제일 작은 수 제거');
 
 describe('Remove Minimum', () => {
 	[

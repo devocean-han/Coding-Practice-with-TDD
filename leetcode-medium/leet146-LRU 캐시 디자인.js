@@ -191,7 +191,7 @@ class ListNode {
 	}
 	// => 알게된 점: Class에 속성(propterty)와 같은 이름의 메소드(method)를 만들 수 없다. 메소드도 본질적으로는 객체에 붙은 속성이기 때문이다. 위와 같이 .next라는 속성과 .next(num)이라는 메소드가 만들어진 경우, 오버라이팅이나 오버로딩되지 않고 처음 만든 속성 .next만 생존하는 것 같다. 
 }
-// 순수 링크드 리스트로 구현
+// (미완성) 순수 링크드 리스트로 구현
 class LRUCacheByLinkedList {
 	constructor(capacity) {
 		this.capacity = capacity;
@@ -293,13 +293,25 @@ class DoublyLinkedList {
 	}
 }
 
+
+
+module.exports = {
+	LRUCache: LRUCacheDoublyLinkedList,
+}
+
 class LRUCacheDoublyLinkedList {
 	constructor(capacity) {
-		this.DLL = new DoublyLinkedList();
-		this.map = {}; // {key: Node(key,val)} 쌍
+		this.DLL = new DoublyLinkedList(); // '최근에 호출된' 캐시일수록 뒤에 위치하도록 만들 링크드 리스트.
+		this.map = {}; // {key: Node(key,val)} 쌍.
 		this.capacity = capacity;
 	}
 
+	// '호출되다'는: 
+	// 	(1) put으로 새롭게 캐시 메모리에 넣어졌을 때 
+	// 	(2) put으로 이미 존재하던 캐시를 수정했을 때
+	//  (3) get으로 이미 존재하던 캐시를 조회했을 때
+	// 모두 '호출된' 것으로 셈한다. 
+	
 	get(key) {
 		// map에서 key를 찾아서 없으면 -1 반환
 		if (!this.map[key]) return -1;
@@ -334,9 +346,5 @@ class LRUCacheDoublyLinkedList {
 
 
 
-
-module.exports = {
-	LRUCache: LRUCacheDoublyLinkedList,
-}
 
 // => function은 호이스팅이 되는데 class는 안 되는 것 같다.

@@ -62,6 +62,15 @@ function solution(nums, k) {
 
 	return result;
 }
+/* 
+Runtime
+8520ms
+Beats 5.09%of users with JavaScript
+=> 시간복잡도 대략 O(N^2) 답게 아주 느린 속도가 나온다.
+Memory
+86.83mb
+Beats 89.84%of users with JavaScript
+*/
 
 // Sliding window:
 // 자료구조로, map은 일단 아니다. 구성 요소 '무슨 종류가 몇 개 있는지' 검사해서 답을 찾는 문제가 아니므로.

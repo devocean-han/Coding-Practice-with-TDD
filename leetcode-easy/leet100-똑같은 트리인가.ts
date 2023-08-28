@@ -33,8 +33,6 @@ The number of nodes in both trees is in the range [0, 100].
 
 */
 
-import { connect } from "http2"
-
 /**
  * Definition for a binary tree node.
 */

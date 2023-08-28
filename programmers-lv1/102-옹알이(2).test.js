@@ -1,4 +1,4 @@
-const { solution } = require('./014-옹알이(2)');
+const { solution } = require('./102-옹알이(2)');
 
 describe('Babbling 2', () => {
 	[

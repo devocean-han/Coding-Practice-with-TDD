@@ -46,19 +46,6 @@ class TreeNode {
         this.left = (left===undefined ? null : left)
         this.right = (right===undefined ? null : right)
 	}
-	
-	// printTree(node: TreeNode | null = this, prefix: string = '', isLeft: boolean, result: string[] = []) {
-	// 	if (node === null) {
-	// 		return;
-	// 	}
-
-	// 	const connector = isLeft ? '/' : '\\';
-	// 	console.log(`${prefix}${connector}----${node.val}`);
-
-	// 	const childPrefix = `${prefix}		`;
-	// 	this.printTree(node.left, childPrefix, true);
-	// 	this.printTree(node.right, childPrefix, false);
-	// }
 
 	printTreeLevels(node: TreeNode | null = this): string[] {
 		const result: string[] = [];
@@ -84,8 +71,8 @@ class TreeNode {
 				currentLevel = level;
 			}
 
-			// (낮은 레벨부터 차례로 튀어나올) 노드들이 '지금' (낮은 레벨부터 차례로)그리고 있는 레벨과 같은 동안에는 다음과 같이 한다: 
-			// 1) 자식 노드가 하나라도 있으면 connector를 '/'로 삼고, 없으면 ' '로 삼는다. 
+			// 현재 레벨의 자식 레벨에 이어지는 '연결 라인' 생성
+			// ex) connectorLine = '/\ /\ /\ /\'
 			let connector = '';
 			if (currentNode.left) {
 				connector += `/`;
@@ -97,10 +84,8 @@ class TreeNode {
 			} else connector = '  ';
 			connectorLine += connector;
 
-			// currentLevelString += `${connector}${connector === '/' ? ' ' : '  '}${currentNode.val}`;
-			// if (connector == '/  ') currentLevelString += `${currentNode.val}  `;
-			// else if (connector == '/\\ ') currentLevelString += `${currentNode.val}`;
-			// currentLevelString += `${currentNode.val}  `;
+			// 현재 레벨의 노드를 나열한 '노드 라인' 생성
+			// ex) currentLevelString = '8 9 10 11 12 13 14 15'
 			if (!parentNode) currentLevelString += `${currentNode.val}`;
 			else if (currentNode && currentNode === parentNode.left) { // 현재 노드가 '왼 자식'
 				currentLevelString += `${currentNode.val} `;
@@ -112,6 +97,7 @@ class TreeNode {
 			} else { // 현재 노드가 null인 가상의 자식. 근데 적용이 안 되는 것 같다.
 				currentLevelString += '       ';
 			}
+
 			// 현재 노드에 왼쪽 자식 노드가 있으면 queue(의 끝)에 추가
 			if (currentNode.left) {
 				queue.push([currentNode.left, level + 1, currentNode]);
@@ -159,7 +145,7 @@ function solution(root: TreeNode | null): boolean {
 	// queue[[각 노드, 완전 이진 트리 기준 노드 위치 번호]]
 	const queue: Array<[TreeNode, number]> = [[root, 1]];
 	let firstNullLevel = null;
-	let prevIndex = 0;
+	// let prevNotNullIndex = 0;
 
 	while (queue.length > 0) {
 		const [node, index] = queue.shift(); // undefined가 반환되면... 그럴 일이 없다. 값이 있는 노드면 [1, 1]같이 반환될 것이고 값이 없는 노드면 [null, 2]같이 반환될 것이므로 구조분해 할당은 제대로 이루어짐.
@@ -172,12 +158,14 @@ function solution(root: TreeNode | null): boolean {
 
 		// 현재 노드가 null이고 이게 첫 발견한 null이면
 		// => null이 아닌 노드만 queue에 넣었는데, null인 노드를 어떻게 처음으로 찾아내지..? 인덱스가 처음으로 끊기는 부분. 
-		// if (!node && !firstNullLevel) {
-		if (index - prevIndex > 0 && !firstNullLevel) {
-			firstNullLevel = Math.floor(Math.log2(prevIndex));
-			console.log('++prev & index가 서로 달라, firstNullLevel이 정말 세팅되었나? ', prevIndex, index, firstNullLevel);
+		if (!node && !firstNullLevel) {
+		// if (index - prevNotNullIndex > 1 && !firstNullLevel) {
+			// firstNullLevel = Math.floor(Math.log2(prevNotNullIndex));
+			firstNullLevel = level;
+			// console.log('++prev & index가 서로 달라, firstNullLevel이 정말 세팅되었나? ', prevNotNullIndex, index, firstNullLevel);
 		}
 
+		// 부모가 null이 아니면 자식이 null이어도 queue에 넣어준다. 그러면 무한루프가 멈출까? 일단 null이 아닌 부모의 자식들가지는 전부 들어가게 되고, 그렇게 들어가 자식 null이 도마에 올라왔을 때 그 자식은 들어가지 않게 된다... 그러면 언젠가는 자기 자신이 null인 '부모'들로 전부 교체되고, 그 자식들은 queue에 들어가지 앟으면서, 루프가 종료될 수 있다. 
 		if (node) {
 			queue.push([node.left, index * 2]);
 		}
@@ -187,19 +175,52 @@ function solution(root: TreeNode | null): boolean {
 		}
 		// queue.push([node ? node.right : null, (index * 2) + 1]);
 
-		prevIndex = index;
+		// 현재 노드가 null이 아닐 때만 prevIndex를 업데이트한다...
+		// prevNotNullIndex = node ? index : prevNotNullIndex;
 	}
 	
 	return true;
 }
 
+// 위의 풀이를 더 정리한 버전: 
+function solution2(root: TreeNode | null): boolean {
+	if (!root) return true;
+
+	const queue: Array<[TreeNode, number]> = [[root, 1]];
+	let firstNullIndex = null;
+
+	while (queue.length > 0) {
+		// queue에서 뽑는다.
+		const [node, index] = queue.shift();
+
+		// 현재 노드의 깊이 레벨을 계산
+		const level = Math.floor(Math.log2(index));
+		// 처음 발견된 null의 레벨과 1 이상 차이나는 레벨에 null이 아닌 정상적인 노드가 발견되(기만 하)면, 균형 트리가 아니다: 
+		if (node && firstNullIndex && level - firstNullIndex >= 1) return false; 
+
+		// (그렇지 않고) 처음 null을 만나면 그 레벨을 기억해둔다.
+		if (!firstNullIndex && !node) {
+			firstNullIndex = level;
+		}
+
+		// 값이 존재하는 노드의 자식들까지만 (null 포함하여) queue에 전부 추가해준다
+		if (node) {
+			queue.push([node.left, index * 2]);
+			queue.push([node.right, (index * 2) + 1]);
+		}
+	}
+
+	// 끝까지 1레벨 '초과'의 깊이 차이를 발견하지 못했다면 균형 트리가 맞다. 
+	return true;
+}
+
 export default {
-	solution: solution,
+	solution: solution5,
 	TreeNode,
 }
 
 // 다른 BFS 해답:
-function solution2(root: any) {
+function solution3(root: any) {
 	let isBalanced = true;
 
 	getHeight(root);
@@ -230,4 +251,48 @@ function getHeight(node: any): number {
 	if (!node) return 0;
 	return Math.max(getHeight(node.left), getHeight(node.right)) + 1;
 	return node.height;
+}
+
+// 다른 해답2: Top down approach
+function topDownSolution(root: TreeNode | null): boolean {
+	// 현재 노드가 null이면 바로 true를 반환한다.
+	if (!root) return true;
+
+	// 왼쪽 자식과 오른쪽 자식 트리의 '깊이'를 구한다. 
+	let leftDepth = depth(root.left);
+	let rightDepth = depth(root.right);
+
+	// 균형 트리가 되는 조건은:
+	// 1) 두 자식 트리의 차가 1보다 작고,
+	// 2) 현재 노드의 왼쪽 자식 노드에 대해 이 전체 로직을 동일하게 수행한 결과가 참,
+	// 3) 현재 노드의 오른족 자식 노드에 대해 이 전체 로직을 동일하게 수행한 결과도 참
+	// 이어야 한다. 
+	// => 2번과 3번을 바꿔 말하자면 결국 가능한 모든 노드에 대해서 왼쪽 자식과 오른쪽 자식 트리의 깊이 차가 1 이하여야만 균형 트리가 된다는 것이다. 
+	// return Math.abs(leftDepth - rightDepth) <= 1;
+	return Math.abs(leftDepth - rightDepth) <= 1 && topDownSolution(root.left) && topDownSolution(root.right);
+}
+
+function depth(node: TreeNode): number {
+	// 주어진 노드가 null이면 0을 반환한다.
+	if (!node) return 0;
+	// 양 자식 중 더 깊은 트리를 택하고 1을 더해 반환한다.
+	// 예) node[1,2,3] => 결과: 2
+	return Math.max(depth(node.left), depth(node.right)) + 1;
+}
+
+// 다른 해답: DFS
+function solution5(root: TreeNode | null) {
+	return dfsheight(root) !== -1;
+}
+
+function dfsheight(node: TreeNode | null): number {
+	if (!node) return 0;
+
+	let leftDepth = dfsheight(node.left);
+	if (leftDepth == -1) return -1;
+	let rightDepth = dfsheight(node.right);
+	if (rightDepth == -1) return -1;
+
+	if (Math.abs(leftDepth - rightDepth) > 1) return -1;
+	return Math.max(leftDepth, rightDepth) + 1;
 }

@@ -119,7 +119,7 @@ class TreeNode {
 }
 
 // => 주어진 트리가 '(높이)균형 이진 트리'인지를 검사하여 반환하기.
-// *균형 트리: 어느 노드의 자식 트리를 비교해도 깊이가 1 이상 차이나지 않는 트리. 즉, 모든 서브트리의 높이가 최대 1만큼 차이나는 트리. 
+// *균형 트리: 어느 노드의 자식 트리를 비교해도 깊이가 1 이상 차이나지 않는 트리. 즉, 모든 서브트리의 높이가 최대 1만큼 차이나는 트리.
 /*  예를 들어 
 	 1
 	/
@@ -129,6 +129,8 @@ class TreeNode {
 과 같은 트리에서 1의 왼쪽 서브트리는 높이가 2, 오른쪽 서브 트리는 높이가 0이라고 할 수 있으며, 이 때 높이 차가 2가 되어 균형 트리가 아니라고 판단할 수 있다. 
 */
 
+
+// (실패함)(문제 이해를 잘못하여 접근)
 // 1. 배열로 만든다. [1,2,2,3,3,null,null,4,4]
 // 2. 각 레벨 범위에서 null이 하나라도 존재할 때, 그 다음 레벨 범위에 노드가 존재하면 false를 반환한다. => BFS 탐색으로 어차피 queue에 저장해야겠다. => '각 레벨 범위' = [1], [2,3], [4,5,6,7], [8,9,10,11,12,13,14,15], [16,...31], [32,...63], [64,...127] ... 즉, root 레벨을 0이라고 할 때 [2^레벨, ...2^(레벨+1) - 1]의 범위를 가짐.
 //  	=> 총 2개 노드까지는 무조건 true가 되겠다. 
@@ -215,11 +217,11 @@ function solution2(root: TreeNode | null): boolean {
 }
 
 export default {
-	solution: solution5,
+	solution: solution6,
 	TreeNode,
 }
 
-// 다른 BFS 해답:
+// (이해 중)다른 BFS 해답:
 function solution3(root: any) {
 	let isBalanced = true;
 
@@ -272,6 +274,10 @@ function topDownSolution(root: TreeNode | null): boolean {
 	return Math.abs(leftDepth - rightDepth) <= 1 && topDownSolution(root.left) && topDownSolution(root.right);
 }
 
+// 주어진 노드 이하 서브 트리의 깊이를 반환.
+// 주어진 노드가 null이면 0을,
+// 주어진 노드가 자기 자신뿐이면 1을,
+// 주어진 노드가 자식이 있으면 2를, 손자가 있으면 3을 반환하는 식이다. 
 function depth(node: TreeNode): number {
 	// 주어진 노드가 null이면 0을 반환한다.
 	if (!node) return 0;
@@ -282,17 +288,61 @@ function depth(node: TreeNode): number {
 
 // 다른 해답: DFS
 function solution5(root: TreeNode | null) {
-	return dfsheight(root) !== -1;
+	return dfsHeight(root) !== -1;
 }
 
-function dfsheight(node: TreeNode | null): number {
+// 1) 현재 노드가 null이면 0을 반환하고,
+// 2) 현재 노드의 두 '자식 노드'에 대한 재귀호출로 현재 잎 노드부터 자식 노드까지의 판단을 불러온다.
+// 2-1) 결과가 어차피 -1이었으면 바로 -1을 반환해주도록 한다.
+
+// '현재 노드'에 대한 판단을 반환한다:
+// 3-1) 이전 '자식 노드' 재귀호출에서는 딱 '자식 자기 자신'까지만 포함한 상태로 깊이 판단을 하였을 것이므로, '형제 노드'와의 깊이 비교는 이루어지지 않았을 것이다. 따라서 '현재(부모) 노드'의 두 자식 노드의 깊이를 비교해주고, 2 이상 차이나면 - 1을 반환한다.
+// 3-2) 그렇지 않으면(두 자식의 깊이가 1만 차이나거나 같다면) 더 깊은 자식을 골라 1을 더한 현재까지의 깊이를 반환한다.
+
+// 위의 로직을 얻기 위한 생각의 흐름은 다음과 같다: 
+// (1)두 자식 트리의 깊이를 비교해야 한다 -> 두 자식 트리의 깊이를 각각 불러온다
+// (2)그렇게 불러온 두 깊이가 2 이상 차이나면 '균형 아님'으로 판단해야 한다 -> 두 깊이가 2 이상 차이나면 -1을 반환하도록 한다.
+// (1)+(2)가 '현재 노드'에 대한 판단 로직이고, (1)을 재귀적으로 구할 수 있을 것 같다. 그렇다면 두 깊이가 2 이상 차이날 때 '균형 아님'으로 판단하는 것 뿐만 아니라 반환 결과값이 '현재 노드 이하 트리의 깊이'가 될 수 있도록 숫자값이 되어야 하고, 또 탈출 조건이 필요해진다:
+// (3)두 자식 트리의 깊이가 2 이상 차이나면 '균형 아님'으로 -1을 반환하도록 만들고, 반대로 1 이하로 차이나면 '균형임'으로 현재 노드까지의 깊이값을 반환해주면 되겠다 -> 두 자식 트리 깊이가 같을 때 아무 자식의 깊이에 1을 더한 값을, 두 자식 트리 깊이가 1 차이날 때 더 깊은 자식의 깊이에 1을 더한 값을 반환한다. 즉, 두 자식 트리 중 더 깊은 자식의 깊이에 1을 더한 값이 '현재 노드' 레벨까지 추가한 현재 깊이가 된다. 
+// (4)탈출 조건은 처음에 깊이 숫자값이 시작되는 지점이기도 해야 한다. 즉, 탈출 반환값이 숫자값이 되어야 한다. 나 자신 노드를 레벨 하나로 셈하므로, 반대로 만약 나 자신 노드가 '없다면' 더해지는 레벨이 0인 것이다. 그렇다면 현재 노드가 null일 때 0을 반환하든지 현재 노드가 잎 노드일 때 1을 반환하든지 하여 탈출 조건을 짜면 되겠다. 
+// (5)엇 그런데 최종적으로 반환해야 하는 형태는 true/false의 불리언이다. 지금 만드는 재귀함수는 숫자값을 반환해야 하므로, 결국 본체 solution 함수 외에 보조 재귀함수를 만들어야 한다는 결론이 나온다. 
+function solution6(root: TreeNode | null): boolean {
+
+	function subTreeDepth(node: TreeNode | null): number {
+		// 0. 탈출 조건: 현재 노드가 잎 노드이면 1을 반환하도록 한다.
+		// if (!node.left && !node.right && node) return 1;
+		if (!node) return 0;
+	
+		// 1. 두 자식 트리의 깊이를 각각 불러온다. 
+		const leftDepth = subTreeDepth(node.left); // node.left가 null일 때의 대처가 없다.
+		const rightDepth = subTreeDepth(node.right);
+		// 1-1. 
+		if (leftDepth === -1 || rightDepth === -1) return -1;
+
+		// 2. 그렇게 불러온 두 깊이가 2 이상 차이나면 '균형 아님'을, 즉 -1을 반환하도록 한다. 
+		if (Math.abs(leftDepth - rightDepth) > 1) return -1;
+		// => 둘의 결과값이 -1인 경우에는 '차' 계산값이 이상해진다. 결국 -1의 경우를 따로 취급해줘야 한다. -> 1.1 조건 추가. 
+		// 3. 반대로 깊이가 1 이하로 차이나면 '균형임'을, 즉 두 자식 트리 중 더 깊은 자식의 깊이에 '현재 노드'의 레벨까지 +1을 더한 값을 반환한다. 
+		return Math.max(leftDepth, rightDepth) + 1;
+	}
+
+	return subTreeDepth(root) !== -1;
+}
+
+function dfsHeight(node: TreeNode | null): number {
+	// 현재 노드가 null이면 0을 반환한다.
 	if (!node) return 0;
 
-	let leftDepth = dfsheight(node.left);
+	// 왼쪽 자식 트리의 깊이를 구한다. 
+	let leftDepth = dfsHeight(node.left);
+	// 그렇게 구한 깊이가 -1이면 -1을 반환한다.
 	if (leftDepth == -1) return -1;
-	let rightDepth = dfsheight(node.right);
+	// 오른쪽 자식 트리의 깊이를 구한다. 
+	let rightDepth = dfsHeight(node.right);
 	if (rightDepth == -1) return -1;
 
+	// 만약 두 자식 트리의 깊이가 2 이상 차이나면 -1을 반환하고,
 	if (Math.abs(leftDepth - rightDepth) > 1) return -1;
+	// 그렇지 않으면 두 깊이 중 큰 값에 1을 더해 반환한다. 
 	return Math.max(leftDepth, rightDepth) + 1;
 }

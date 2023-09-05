@@ -125,9 +125,9 @@ function solution(root: TreeNode | null): number {
 	return Math.max(leftDepth, rightDepth) + 1;
 }
 
-// 스택을 이용해 DFS를 할 수도 있나?
+// (실패) 스택을 이용해 DFS를 할 수도 있나?
 function solution2(root: TreeNode | null): number {
-	if (!null) return 0;
+	if (!root) return 0;
 
 	let maxDepth = 0;
 	let count = 0;
@@ -150,9 +150,33 @@ function solution2(root: TreeNode | null): number {
 
 	return maxDepth;
 }
+// (성공)ChatGPT가 알려준: 
+function solution3(root: TreeNode | null): number {
+	if (!root) return 0;
 
+	const stack: Array<TreeNode> = [root];
+	const depths: number[] = [1]; // 각 노드의 깊이를 추적하는 배열
+	let maxDepth = 0;
+
+	while (stack.length) {
+		const node = stack.pop()!;
+		const depth = depths.pop()!;
+
+		maxDepth = Math.max(maxDepth, depth);
+
+		if (node.right) {
+			stack.push(node.right);
+			depths.push(depth + 1);
+		}
+		if (node.left) {
+			stack.push(node.left);
+			depths.push(depth + 1);
+		}
+	}
+
+	return maxDepth;
+}
 export default {
 	solution: solution2,
 	TreeNode,
 }
-

@@ -48,15 +48,17 @@ class TreeNode {
 	}
 }
 
-// => 주어진 이진탐색트리(BST)에서 주어진 두 노드의 가장 가까운 공통 조상을 찾아서 반환하기. 자기자신도 가장 가까운 공통 조상이 될 수 있다. 
+// => 주어진 이진탐색트리(BST)에서 주어진 두 노드의 가장 가까운 공통 조상을 찾아서 반환하기. 자기자신도 가장 가까운 공통 조상이 될 수 있다.
 
-// BST의 중요한 특성은 부모 노드의 값이 왼쪽 서브트리에 있는 모든 노드의 값보다 작고 오른쪽 서브트리에 있는 모든 노드의 값보다 크다는 점이다. 주어진 두 노드 중 하나의 값이 현재 노드의 값보다 작으면 왼쪽 자식 트리로 가고 크면 오른쪽 자식 트리로 가며, 같거나 null이면 null을 반환한다. 
+// BST의 중요한 특성은 부모 노드의 값이 왼쪽 서브트리에 있는 모든 노드의 값보다 작고 오른쪽 서브트리에 있는 모든 노드의 값보다 크다는 점이다. 주어진 두 노드 중 하나의 값이 현재 노드의 값보다 작으면 왼쪽 자식 트리로 가고 크면 오른쪽 자식 트리로 가며, 같거나 null이면 null을 반환한다.
+// Time complexity: O(H-1) = O(H)
+// Space complexity: O(H)
 function solution(root: TreeNode, p: TreeNode | null, q: TreeNode | null): TreeNode | null {
 	// if (!root) return root;
 	// 두 노드가 현재 노드의 오른쪽 서브트리에 있을 경우
-	if (root.val < p.val && root.val < q.val) solution(root.right, p, q);
+	if (root.val < p.val && root.val < q.val) return solution(root.right, p, q);
 	// 두 노드가 현재 노드의 왼쪽 서브트리에 있을 경우
-	if (root.val > p.val && root.val > q.val) solution(root.left, p, q);
+	if (root.val > p.val && root.val > q.val) return solution(root.left, p, q);
 
 	// p와 q가 현재 노드의 양쪽 서브트리에 있거나
 	// 현재 노드가 p 또는 q 중 하나와 일치하는 경우
@@ -69,21 +71,68 @@ function solution(root: TreeNode, p: TreeNode | null, q: TreeNode | null): TreeN
 // 왼쪽 서브트리와 오른쪽 서브트리도 모두 이진 검색 트리여야 한다.
 
 export default {
-	solution: solution2,
+	solution: solution3,
 }
 
-// 반복을 이용한 풀이:
+// 반복을 이용한 풀이
+// Time complexity: O(H-1) = O(H) 
+// Space complexity: O(1) ?
 function solution2(root: TreeNode, p: TreeNode | null, q: TreeNode | null): TreeNode | null {
-	// if (!root) return root;
+	// root가 null이 아닌 동안
 	while (root) {
+		// p와 q의 value가 모두 root보다 크면 '현재 노드'를 오른 자식으로 이동한다. 
 		if (root.val < p.val && root.val < q.val) {
-			solution(root.right, p, q);
+			root = root.right;
+		// p와 q의 value가 모두 root보다 작으면 '현재 노드'를 왼 자식으로 이동한다. 
 		} else if (root.val > p.val && root.val > q.val) {
-			solution(root.left, p, q);
+			root = root.left;
+		// 그렇지 않다면
+		// (= p와 q가 현재 노드의 양쪽 서브 트리에 위치하거나)
+		// (  현재 노드가 p 또는 q 중 하나와 일치하는 경우)
+		// 탐색을 멈추고 현재 노드를 반환한다.  
 		} else {
 			break;
 		}
 	}
 
 	return root;
+}
+
+// 보조 함수를 이용한 다른 해답: 루트부터 시작해서 p와 q의 조상을 모두 구한 배열 2개에서, 둘이 서로 '달라지는(=공통조상이 갈라지는)' 지점의 직전 노드를 반환한다. 
+// Time complexity: O(3H) = O(H)
+// Space complexity: O(2H) = O(H)
+function solution3(root: TreeNode, p: TreeNode | null, q: TreeNode | null): TreeNode | null {
+	function findAncestors(node: TreeNode | null, target: TreeNode | null) {
+		if (!node) return [];
+
+		const result = [node]; // 조상을 모아 담을 배열
+		while (node.val !== target.val) {
+			// 현재 검사하는 노드가 타겟 노드보다 값이 크면 왼 자식으로,
+			// 값이 작으면 오른 자식으로 이동한다. 
+			if (node.val > target.val) {
+				node = node.left;
+			} else {
+				node = node.right;
+			}
+			result.push(node);
+		}
+		
+		return result;
+	}
+
+	// p와 q의 모든 조상 리스트를 구한다.
+	const anscestorP = findAncestors(root, p); // O(H)
+	const anscestorQ = findAncestors(root, q); // O(H)
+
+	let leastCommonAnscestor;
+
+	for (let i = 0; i < Math.min(anscestorP.length, anscestorQ.length); i++) { // O(H)
+		if (anscestorP[i].val === anscestorQ[i].val) {
+			leastCommonAnscestor = anscestorP[i];
+		} else {
+			break;
+		}
+	}
+
+	return leastCommonAnscestor;
 }

@@ -5,11 +5,11 @@ import { before } from 'cheerio/lib/api/manipulation';
 
 describe('Lowest Common Ancestor of a Binary Search Tree', () => {
 	describe('The number of nodes check: Must be in the range [2, 100,000]', () => {
-		let root: TreeNode = new TreeNode(0);
+		let root: TreeNode = new TreeNode(1);
 		let p: TreeNode;
 		let q: TreeNode;
 		beforeEach(() => {
-			root.left = new TreeNode(1);
+			root.left = new TreeNode(0);
 			p = root;
 			q = root.left;
 		});
@@ -28,28 +28,28 @@ describe('Lowest Common Ancestor of a Binary Search Tree', () => {
 			root = new TreeNode(1);
 		});
 		
-		it(`given tree is [1,2,3] and p is root`, () => {
-			root.left = new TreeNode(2);
+		it(`given tree is [1,0,3] and p is root`, () => {
+			root.left = new TreeNode(0);
 			root.right = new TreeNode(3);
 			p = root;
 			q = root.left;
 			expect(solution(root, p, q)).toEqual(root);
 		});
 		
-		it(`given tree is [1,2,null,4] and p is root (and q is node 4)`, () => {
-			root.left = new TreeNode(2);
-			root.left.left = new TreeNode(4);
+		it(`given tree is [1,0,null,-4] and p is root (and q is node 4)`, () => {
+			root.left = new TreeNode(0);
+			root.left.left = new TreeNode(-4);
 			p = root;
 			q = root.left.left;
 			expect(solution(root, p, q)).toEqual(root);
 		});
 		
-		it(`given tree is [1,2,3,4,5,6,7,8,9,10] and q is root (and p is node 10)`, () => {
-			root.left = new TreeNode(2, new TreeNode(4), new TreeNode(5));
+		it(`given tree is [1,-20,3,-40,-5,6,7,-80,-29,-10] and q is root (and p is node 10)`, () => {
+			root.left = new TreeNode(-20, new TreeNode(-40), new TreeNode(-5));
 			root.right = new TreeNode(3, new TreeNode(6), new TreeNode(7));
-			root.left.left.left = new TreeNode(8);
-			root.left.left.right = new TreeNode(9);
-			root.left.right.left = new TreeNode(10);
+			root.left.left.left = new TreeNode(-80);
+			root.left.left.right = new TreeNode(-29);
+			root.left.right.left = new TreeNode(-10);
 			p = root.left.right.left;
 			q = root;
 			expect(solution(root, p, q)).toEqual(root);

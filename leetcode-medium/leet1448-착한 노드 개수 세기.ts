@@ -92,7 +92,7 @@ export default {
 	solution: solution3,
 }
 
-// 다른 해답: 재귀(recursive) 말고 스택을 이용하여 반복(iterative)함. 
+// 다른 해답: 스택에 최고값도 같이 저장해서 넘겨주는 방식으로 순회(iterative)함.
 function solution3(root: TreeNode | null): number {
 
 	const stack: Array<[TreeNode, number]> = [[root, root.val]];
@@ -107,6 +107,7 @@ function solution3(root: TreeNode | null): number {
 				stack.push([child, Math.max(node.val, currentMax)]);
 			}
 		}
+		// 위의 for문은 다음 두 줄과 같다: 
 		// if (node.left) stack.push([node.left, Math.max(node.val, currentMax)]);
 		// if (node.right) stack.push([node.right, Math.max(node.val, currentMax)]);
 	}

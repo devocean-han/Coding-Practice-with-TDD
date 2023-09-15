@@ -1,5 +1,6 @@
-/*
+/* 208. Implement Trie (Prefix Tree)
 https://leetcode.com/problems/implement-trie-prefix-tree/description/
+Trie1, Trie2는 내가 막 만들어 통과시킨 클래스고, Trie3 클래스가 제대로 된 구현이다. 어떤 식으로 'node'가 운용이 되는 것인지는 다음 유튜브에서 그림을 참고하여 이해하였다: https://www.youtube.com/watch?v=-urNrIAQnNo
 
 Medium
 
@@ -38,6 +39,9 @@ word and prefix consist only of lowercase English letters.
 At most 3 * 104 calls in total will be made to insert, search, and startsWith.
 
 */
+
+// => Trie(트라이) 자료구조를 구현하기. 
+// = Trie 클래스 내부의 constructor와 insert, search, startsWith 메소드를 구현하기. 
 
 export class Trie {
 	words: string[]
@@ -136,9 +140,14 @@ class Trie3 {
 		let node: TrieNode[] = this.#root; 
 
 		// "coffee"를 인수로 받았다면 'c','o'...의 각 문자에 대하여
+		// charMap.get('c') = 2
+		// o = 14
+		// f = 5
+		// f = 5
+		// e = 4
+		// e = 4
 		for (const char of word) {
 			// 해당하는 영문자 번호에 해당하는 위치로 찾아간다. 
-			// 
 			// 다음 노드로 이동하고 필요하다면 새로 만든다. 
 			node = node[charMap.get(char)!] ??= Array(dict.length);
 		}
@@ -149,9 +158,10 @@ class Trie3 {
 	// 노드를 순회하며 주어진 word의 마지막 노드 혹은 null을 반환한다.
 	#search(word: string): TrieNode | null {
 		let node = this.#root;
-
+		
 		for (const char of word) {
 			const next = node[charMap.get(char) ?? -1];
+			//! char가 영문 소문자가 아니거나 해당 알파벳이 이전에 단계별로 등장한 적이 없는 문자라면: 곧바로 null을 반환한다. 
 			if (!next) return null;
 			node = next;
 		}

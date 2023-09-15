@@ -106,6 +106,14 @@ describe('Implement Trie (Prefix Tree)', () => {
 			expect(trie.startsWith).toReturn(); // same as toHaveReturned()
 			expect(trie.startsWith).toReturnWith(false);
 		});
+
+		it(`should return false after inserting "coffee" but calling with the prefix "cofe"`, () => {
+			trie.insert('coffee');
+			trie.startsWith('cofe');
+			expect(trie.startsWith).toHaveBeenCalledWith('cofe');
+			expect(trie.startsWith).toReturn(); // same as toHaveReturned()
+			expect(trie.startsWith).toReturnWith(false);
+		});
 	});
 
 });

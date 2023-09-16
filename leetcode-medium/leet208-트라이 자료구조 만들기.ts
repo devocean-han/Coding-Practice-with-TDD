@@ -40,10 +40,11 @@ At most 3 * 104 calls in total will be made to insert, search, and startsWith.
 
 */
 
-// => Trie(트라이) 자료구조를 구현하기. 
-// = Trie 클래스 내부의 constructor와 insert, search, startsWith 메소드를 구현하기. 
+// => Trie(트라이) 자료구조를 구현하기.
+// = Trie 클래스 내부의 constructor와 insert, search, startsWith 메소드를 구현하기.
 
-export class Trie {
+// (통과는 되나 알맞지 않은 해답임)
+class Trie1 {
 	words: string[]
 	constructor() {
 		this.words = [];
@@ -69,7 +70,8 @@ export class Trie {
 	}
 }
 
-export class Trie2 {
+// (통과는 되나 알맞지 않은 해답임)
+class Trie2 {
 	words: string[]
 	constructor() {
 		this.words = [];
@@ -106,7 +108,7 @@ export class Trie2 {
  * var param_3 = obj.startsWith(prefix)
  */
 
-// 다른 해답:
+// (제대로 된) 다른 해답:
 const dict = "abcdefghijklmnopqrstuvwxyz";
 const charMap = new Map([...dict].map((v, i) => [v, i]));
 // => 'charCodeAt()' 대체용 map

@@ -72,56 +72,168 @@
 function findWords(board: string[][], words: string[]): string[] {
 
     const result: string[] = [];
+    // 단어별 방문한 cell을 기록할 노트: 
+    // => Map{ i: Map{ j, j,..} }식으로 저장하고,
+    //    if (visitedCell.has(i) && visitedCell.get(i).has(j)) 같이 검사할 것임. 
+    // const visitedCell = new Map();
     for (let word of words) {
-        if (aug(0, 0, word, 0)) result.push(word);
+        if (aug(0, 0, word, 1, new Map())) result.push(word);
     }
 
     // 보조 재귀함수 (i=row, j=col, nextChar=다음 문자의 인덱스 번호)
-    function aug(i: number, j: number, word: string, nextCharIndex: number): boolean {
+    function aug(i: number, j: number, word: string, nextCharIndex: number, visitedCell: any): boolean {
         // 0. 탈출 조건(base condition): 주어진 '다음 문자'가 공백(=마지막 이후 문자)이면 true를 반환한다. 
         if (nextCharIndex >= word.length) return true;
-        // 0. 탈출 조건 II: 상하좌우 중 어느 칸에도 '다음 문자'가 존재하지 않으면 false를 반환한다. 
+
+        // 0. 탈출 조건 II: 상하좌우 중 어느 칸에도 '다음 문자'가 존재하지 않으면 false를 반환한다.  => 굳이 이럴 필요 없이, 마지막에 false를 단순 반환시켜주면 된다. 
         const nextChar = word[nextCharIndex];
-        if (board[i - 1]?.[j] !== nextChar &&
-            board[i + 1]?.[j] !== nextChar &&
-            board[i]?.[j - 1] !== nextChar &&
-            board[i]?.[j + 1] !== nextChar) {
-            return false;
-        }
+        // if (board[i - 1]?.[j] !== nextChar &&
+        //     board[i + 1]?.[j] !== nextChar &&
+        //     board[i]?.[j - 1] !== nextChar &&
+        //     board[i]?.[j + 1] !== nextChar) {
+        //     return false;
+        // }
+
+        
+        // 0. i나 j를 검사하여 0보다 작거나 하면 바로 탈출시켜 밑에서 board[i - 1]?.[j]같이 복잡한 형식으로 참조하지 않도록 하려함. => 그러나 i가 0일 때 '상'은 안되지만 '하'는 검사해야 하므로 곧바로 탈출시킬(i=0일 떄의 검사 자체를 막을) 수 없다. 따라서 아래와 같이 옵셔널 체이닝으로 그 때 그 때 undefined를 영문자와 비교시키는 게 최선이다. 
 
         // 1. 상하좌우에 '다음 문자'가 존재하면 재귀 호출한다.
         let up, down, left, right;
         //  상: 윗칸이 존재하고 그 칸이 '다음 문자'라면
-        if (i > 0 && board[i - 1][j] === nextChar) {
+        //      그리고 이전에 방문한 칸이 아니라면
+        if (board[i - 1]?.[j] === nextChar &&
+            !(visitedCell.has(i - 1) && visitedCell.get(i - 1).has(j))) {
             // 윗칸과 그 다음 문자를 두고 재귀호출하고
-            up = aug(i - 1, j, word, nextCharIndex + 1);
+            up = aug(i - 1, j, word, nextCharIndex + 1, visitedCell);
             // 그 결과가 true면 곧바로 true를 반환한다. 
-            // if (up) return true;
+            if (up) {
+                if (!visitedCell.has(i - 1)) visitedCell.set(i - 1, new Map());
+                visitedCell.get(i - 1).set(j, true);
+                // visitedCell.set(visitedCell.get(i) ?? )
+                return true;
+            }
         }
         //  하: 아래칸이 존재하고 그 칸이 '다음 문자'라면
-        if (i < board.length - 1 && board[i + 1][j] === nextChar) {
-            down = aug(i + 1, j, word, nextCharIndex + 1);
-            // if (down) return true;
+        if (board[i + 1]?.[j] === nextChar &&
+            !(visitedCell.has(i + 1) && visitedCell.get(i+ 1).has(j))) {
+            down = aug(i + 1, j, word, nextCharIndex + 1, visitedCell);
+            if (down) {
+                if (!visitedCell.has(i + 1)) visitedCell.set(i + 1, new Map());
+                visitedCell.get(i + 1).set(j, true);
+                return true;
+            }
         }
         // => 엇, 상하좌우 중 방금 지나온 칸을 어떻게 표시해놓지? 그 칸은 다시 지나가면 안 된다. 검사 후보에서 빼버려야 한다.
         // => 각 재귀호출마다 return 을 붙여줘야 하려나? => 상하좌우 각이 word 끝까지 true를 반환했다면 그대로 리턴으로 끝내면 되지만, 상이 만약 false엿다면 다음 하좌우 검사로 넘어가야 한다. 즉, 재귀 호출이 true를 반환했을 때만 true를 반환한다. 
 
         //  좌: 
-        if (j > 0 && board[i]?.[j - 1] === nextChar) {
-            left = aug(i, j - 1, word, nextCharIndex + 1);
-            // if (left) return true;
+        if (board[i]?.[j - 1] === nextChar &&
+            !(visitedCell.has(i) && visitedCell.get(i).has(j - 1))) {
+            left = aug(i, j - 1, word, nextCharIndex + 1, visitedCell);
+            if (left) {
+                if (!visitedCell.has(i)) visitedCell.set(i, new Map());
+                visitedCell.get(i).set(j - 1, true);
+                return true;
+            }
         }
         //  우: 
-        if (j < board.length - 1 && board[i]?.[j + 1] === nextChar) {
-            right = aug(i, j + 1, word, nextCharIndex + 1);
-            // if (right) return true;
+        if (board[i]?.[j + 1] === nextChar &&
+            !(visitedCell.has(i) && visitedCell.get(i).has(j + 1))) {
+            right = aug(i, j + 1, word, nextCharIndex + 1, visitedCell);
+            if (right) {
+                if (!visitedCell.has(i)) visitedCell.set(i, new Map());
+                visitedCell.get(i).set(j + 1, true);
+                return true;
+            }
         }
-        return up || down || left || right; 
+        return false;
+        // return up || down || left || right; 
+    }
+    
+    return result;
+};
+
+
+
+function findWords2(board: string[][], words: string[]): string[] {
+
+    const result: string[] = [];
+    // 단어별 방문한 cell을 기록할 노트: 
+    // => Map{ i: { 
+    //              j, 
+    //              j, 
+    //              ...
+    //             },
+    //         }
+    //    식으로 저장하고,
+    //    if (visitedCell.has(i) && visitedCell.get(i).has(j)) 같이 검사할 것임. 
+    for (let word of words) {
+        // const visitedCell = new Map();
+        if (aug(0, 0, word, 1, new Map())) result.push(word);
+    }
+
+    // 보조 재귀함수 (i=row, j=col, nextChar=다음 문자의 인덱스 번호)
+    function aug(i: number, j: number, word: string, nextCharIndex: number, visitedCell: any): boolean {
+        // 0. 탈출 조건(base condition): 주어진 '다음 문자'가 공백(=마지막 이후 문자)이면 true를 반환한다. 
+        if (nextCharIndex >= word.length) return true;
+
+        const nextChar = word[nextCharIndex];
+
+        // 1. 상하좌우에 '다음 문자'가 존재하면 재귀 호출한다.
+        let up, down, left, right;
+        //  상: 윗칸이 존재하고 그 칸이 '다음 문자'라면
+        //      그리고 이전에 방문한 칸이 아니라면
+        if (board[i - 1]?.[j] === nextChar &&
+            !(visitedCell.has(i - 1) && visitedCell.get(i - 1).has(j))) {
+            // 윗칸과 그 다음 문자를 두고 재귀호출하고
+            up = aug(i - 1, j, word, nextCharIndex + 1, visitedCell);
+            // 그 결과가 true면 곧바로 true를 반환한다. 
+            if (up) {
+                if (!visitedCell.has(i - 1)) visitedCell.set(i - 1, new Map());
+                visitedCell.get(i - 1).set(j, true);
+                // visitedCell.set(visitedCell.get(i) ?? )
+                return true;
+            }
+        }
+        //  하: 아래칸이 존재하고 그 칸이 '다음 문자'라면
+        if (board[i + 1]?.[j] === nextChar &&
+            !(visitedCell.has(i + 1) && visitedCell.get(i+ 1).has(j))) {
+            down = aug(i + 1, j, word, nextCharIndex + 1, visitedCell);
+            if (down) {
+                if (!visitedCell.has(i + 1)) visitedCell.set(i + 1, new Map());
+                visitedCell.get(i + 1).set(j, true);
+                return true;
+            }
+        }
+
+        //  좌: 
+        if (board[i]?.[j - 1] === nextChar &&
+            !(visitedCell.has(i) && visitedCell.get(i).has(j - 1))) {
+            left = aug(i, j - 1, word, nextCharIndex + 1, visitedCell);
+            if (left) {
+                if (!visitedCell.has(i)) visitedCell.set(i, new Map());
+                visitedCell.get(i).set(j - 1, true);
+                return true;
+            }
+        }
+        //  우: 
+        if (board[i]?.[j + 1] === nextChar &&
+            !(visitedCell.has(i) && visitedCell.get(i).has(j + 1))) {
+            right = aug(i, j + 1, word, nextCharIndex + 1, visitedCell);
+            if (right) {
+                if (!visitedCell.has(i)) visitedCell.set(i, new Map());
+                visitedCell.get(i).set(j + 1, true);
+                return true;
+            }
+        }
+
+        // 3. 
+        return false;
     }
     
     return result;
 };
 
 export default {
-    solution: findWords,
+    solution: findWords2,
 }

@@ -71,15 +71,6 @@
 */
 function findWords(board: string[][], words: string[]): string[] {
 
-    const result: string[] = [];
-    // 단어별 방문한 cell을 기록할 노트: 
-    // => Map{ i: Map{ j, j,..} }식으로 저장하고,
-    //    if (visitedCell.has(i) && visitedCell.get(i).has(j)) 같이 검사할 것임. 
-    // const visitedCell = new Map();
-    for (let word of words) {
-        if (aug(0, 0, word, 1, new Map())) result.push(word);
-    }
-
     // 보조 재귀함수 (i=row, j=col, nextChar=다음 문자의 인덱스 번호)
     function aug(i: number, j: number, word: string, nextCharIndex: number, visitedCell: any): boolean {
         // 0. 탈출 조건(base condition): 주어진 '다음 문자'가 공백(=마지막 이후 문자)이면 true를 반환한다. 
@@ -150,6 +141,16 @@ function findWords(board: string[][], words: string[]): string[] {
         // return up || down || left || right; 
     }
     
+    
+    const result: string[] = [];
+    // 단어별 방문한 cell을 기록할 노트: 
+    // => Map{ i: Map{ j, j,..} }식으로 저장하고,
+    //    if (visitedCell.has(i) && visitedCell.get(i).has(j)) 같이 검사할 것임. 
+    // const visitedCell = new Map();
+    for (let word of words) {
+        if (aug(0, 0, word, 1, new Map())) result.push(word);
+    }
+
     return result;
 };
 
@@ -167,13 +168,28 @@ function findWords2(board: string[][], words: string[]): string[] {
     //         }
     //    식으로 저장하고,
     //    if (visitedCell.has(i) && visitedCell.get(i).has(j)) 같이 검사할 것임. 
-    for (let word of words) {
-        // const visitedCell = new Map();
-        if (aug(0, 0, word, 1, new Map())) result.push(word);
+    wordSearch: for (let word of words) {
+        // 1. 첫 문자 위치 찾기
+        for (let i = 0; i < board.length; i++) {
+            for (let j = 0; j < board[0].length; j++) {
+                if (board[i][j] === word[0]) {
+                    // 2. 첫 문자 칸에서 시작해서 이어지는 문자들을 각각의 상하좌우칸을 검사하며 찾기. 
+                    // const visitedCell = new Map();
+                    if (aug(i, j, word, 1, new Map().set(i, new Map().set(j, true)))) {
+                        result.push(word);
+                        continue wordSearch;
+                    }
+                }
+            }
+        }
     }
 
     // 보조 재귀함수 (i=row, j=col, nextChar=다음 문자의 인덱스 번호)
     function aug(i: number, j: number, word: string, nextCharIndex: number, visitedCell: any): boolean {
+        console.log("현재 위치:", i, j, "현재 문자:", word[nextCharIndex - 1], "visited 초반: ", visitedCell);
+        // // 현재 칸을 '방문한 칸'에 추가
+        // if (!visitedCell.has(i)) visitedCell.set(i, new Map());
+        // visitedCell.get(i).set(j, true);
         // 0. 탈출 조건(base condition): 주어진 '다음 문자'가 공백(=마지막 이후 문자)이면 true를 반환한다. 
         if (nextCharIndex >= word.length) return true;
 
@@ -185,8 +201,87 @@ function findWords2(board: string[][], words: string[]): string[] {
         //      그리고 이전에 방문한 칸이 아니라면
         if (board[i - 1]?.[j] === nextChar &&
             !(visitedCell.has(i - 1) && visitedCell.get(i - 1).has(j))) {
+            console.log(`현재: ${board[i][j]}, 다음 찾는 문자: 위쪽에서 ${nextChar}찾음`);
+            // 현재 칸의 윗칸을 방문 기록에 추가.
+            if (!visitedCell.has(i - 1)) visitedCell.set(i - 1, new Map());
+            visitedCell.get(i - 1).set(j, true);
+
             // 윗칸과 그 다음 문자를 두고 재귀호출하고
             up = aug(i - 1, j, word, nextCharIndex + 1, visitedCell);
+            // 그 결과가 true면 곧바로 true를 반환한다. 
+            if (up) {
+                return true;
+            }
+        }
+        //  하: 아래칸이 존재하고 그 칸이 '다음 문자'라면
+        if (board[i + 1]?.[j] === nextChar &&
+            !(visitedCell.has(i + 1) && visitedCell.get(i+ 1).has(j))) {
+            console.log(`현재: ${board[i][j]}, 다음 찾는 문자: 아래에서 ${nextChar}찾음`);
+            // 현재 칸의 아래 칸을 방문 기록에 추가
+            if (!visitedCell.has(i + 1)) visitedCell.set(i + 1, new Map());
+
+            visitedCell.get(i + 1).set(j, true);
+            down = aug(i + 1, j, word, nextCharIndex + 1, visitedCell);
+            if (down) {
+                return true;
+            }
+        }
+
+        //  좌: 
+        if (board[i]?.[j - 1] === nextChar &&
+            !(visitedCell.has(i) && visitedCell.get(i).has(j - 1))) {
+            console.log(`현재: ${board[i][j]}, 다음 찾는 문자: 왼쪽에서 ${nextChar}찾음`);
+            // 일단 현재 칸의 '좌'에 대해서는 확실하니까 '방문 기록'에 넣어준다.
+            if (!visitedCell.has(i)) visitedCell.set(i, new Map());
+            visitedCell.get(i).set(j - 1, true);
+
+            // 다음 탐색 속행
+            left = aug(i, j - 1, word, nextCharIndex + 1, visitedCell);
+            if (left) {
+                return true;
+            }
+        }
+        //  우: 
+        if (board[i]?.[j + 1] === nextChar &&
+            !(visitedCell.has(i) && visitedCell.get(i).has(j + 1))) {
+            console.log(`현재: ${board[i][j]}, 다음 찾는 문자: 오른쪽에서 ${nextChar}찾음`);
+            // 현재 칸의 오른칸을 방문 기록에 추가.
+            if (!visitedCell.has(i)) visitedCell.set(i, new Map());
+            visitedCell.get(i).set(j + 1, true);
+
+            right = aug(i, j + 1, word, nextCharIndex + 1, visitedCell);
+            if (right) {
+                return true;
+            }
+        }
+
+        console.log("현재 위치:", i, j, "현재 문자:", word[nextCharIndex - 1], "visited: 마지막 ", visitedCell);
+
+        // 내 방위의 결과가 모두 false면, 이전 단계로 후퇴(backtracking)하여 이전 문자를 탐색한다. 즉, 추가했던 '현재 칸 방문 기록'을 지우고, '직전 방문 기록'을 표적삼아 직전 칸으로 돌아간다.
+        console.log('후퇴!');
+        visitedCell.get(i).delete(j);
+        // 3. 
+        return false;
+    }
+
+    // (필요 없어짐)보조 재귀함수2: 현재 board 위치와 현재 문자 위치 charIndex를 받아 현재 board의 문자가 현재 문자와 일치하는지 반환 (i=row, j=col, charIndex=현재 문자의 인덱스 번호)
+    function aug2(i: number, j: number, word: string, charIndex: number, visitedCell: any): boolean {
+        console.log("visited: ", visitedCell);
+
+        // 0. 탈출 조건(base condition): 주어진 '현재 문자'가 공백(=마지막 이후 문자)이면 true를 반환한다. 
+        if (charIndex >= word.length) return true;
+
+        const char = word[charIndex];
+
+        // 1. 상하좌우에 '다음 문자'가 존재하면 재귀 호출한다.
+        let up, down, left, right;
+        //  상: 윗칸이 존재하고 그 칸이 '다음 문자'라면
+        //      그리고 이전에 방문한 칸이 아니라면
+        if (board[i - 1]?.[j] === char &&
+            !(visitedCell.has(i - 1) && visitedCell.get(i - 1).has(j))) {
+                console.log(`현재: ${board[i][j]}, 다음 찾는 문자: 위쪽에서 ${char}찾음`)
+            // 윗칸과 그 다음 문자를 두고 재귀호출하고
+            up = aug2(i - 1, j, word, charIndex + 1, visitedCell);
             // 그 결과가 true면 곧바로 true를 반환한다. 
             if (up) {
                 if (!visitedCell.has(i - 1)) visitedCell.set(i - 1, new Map());
@@ -196,9 +291,10 @@ function findWords2(board: string[][], words: string[]): string[] {
             }
         }
         //  하: 아래칸이 존재하고 그 칸이 '다음 문자'라면
-        if (board[i + 1]?.[j] === nextChar &&
+        if (board[i + 1]?.[j] === char &&
             !(visitedCell.has(i + 1) && visitedCell.get(i+ 1).has(j))) {
-            down = aug(i + 1, j, word, nextCharIndex + 1, visitedCell);
+                console.log(`현재: ${board[i][j]}, 다음 찾는 문자: 아래에서 ${char}찾음`)
+            down = aug2(i + 1, j, word, charIndex + 1, visitedCell);
             if (down) {
                 if (!visitedCell.has(i + 1)) visitedCell.set(i + 1, new Map());
                 visitedCell.get(i + 1).set(j, true);
@@ -207,9 +303,10 @@ function findWords2(board: string[][], words: string[]): string[] {
         }
 
         //  좌: 
-        if (board[i]?.[j - 1] === nextChar &&
+        if (board[i]?.[j - 1] === char &&
             !(visitedCell.has(i) && visitedCell.get(i).has(j - 1))) {
-            left = aug(i, j - 1, word, nextCharIndex + 1, visitedCell);
+                console.log(`현재: ${board[i][j]}, 다음 찾는 문자: 왼쪽에서 ${char}찾음`)
+            left = aug2(i, j - 1, word, charIndex + 1, visitedCell);
             if (left) {
                 if (!visitedCell.has(i)) visitedCell.set(i, new Map());
                 visitedCell.get(i).set(j - 1, true);
@@ -217,11 +314,13 @@ function findWords2(board: string[][], words: string[]): string[] {
             }
         }
         //  우: 
-        if (board[i]?.[j + 1] === nextChar &&
+        if (board[i]?.[j + 1] === char &&
             !(visitedCell.has(i) && visitedCell.get(i).has(j + 1))) {
-            right = aug(i, j + 1, word, nextCharIndex + 1, visitedCell);
+                console.log(`현재: ${board[i][j]}, 다음 찾는 문자: 오른쪽에서 ${char}찾음`)
+            right = aug2(i, j + 1, word, charIndex + 1, visitedCell);
             if (right) {
                 if (!visitedCell.has(i)) visitedCell.set(i, new Map());
+                console.log('i에 해당하는 항목 만들고 나서: ', visitedCell);
                 visitedCell.get(i).set(j + 1, true);
                 return true;
             }
@@ -234,6 +333,96 @@ function findWords2(board: string[][], words: string[]): string[] {
     return result;
 };
 
+function findWords3(board: string[][], words: string[]): string[] {
+    const result: string[] = [];
+
+    // 각 단어를 순회하며 첫 문자에 해당하는 칸을 찾는다.
+    wordSeach: for (let word of words) {
+        for (let i = 0; i < board.length; i++) {
+            for (let j = 0; j < board[0].length; j++) {
+                if (board[i][j] === word[0]) {
+                    // 첫 문자에 해당하는 칸을 찾았으면 그 칸에서 시작해서 이어지는 문자들을 탐색한다. 
+                    if (aug(i, j, word, 1, new Map().set(i, new Map().set(j, true)))) {
+                        // 완성된 단어를 찾았으면 result 배열에 단어를 넣고, 곧바로 다음 단어로 넘어간다. 
+                        result.push(word);
+                        continue wordSeach;
+                    }
+                }
+            }
+        }
+    }
+
+    //* 보조 재귀함수: board에서 현재 위치(i=행, j=열)와 현재 검사중인 단어(word), 단어 중 현재 칸의 상하좌우를 매칭시켜볼 다음 문자를 가리키는 인덱스 번호(nextCharIndex)를 받아
+    //*      현재 칸의 상하좌우 칸에 대하여 다음 문자가 매칭되는지 검사하여 true/false를 반환한다. 
+    //*      방문한 적이 있는 칸을 또다시 방문하지 않도록 저장해둔다(visitedCell)
+    function aug(i: number, j: number, word: string, nextCharIndex: number, visitedCell: any): boolean {
+        // 0. 탈출 조건(base condition): 주어진 '다음 문자'가 공백(=마지막 이후 문자)이면 true를 반환한다. 
+        if (nextCharIndex >= word.length) return true;
+
+        const nextChar = word[nextCharIndex];
+
+        // 1. 상하좌우에 '다음 문자'가 존재하면 재귀 호출한다.
+        let up, down, left, right;
+        //  상: 윗칸이 존재하고 그 칸이 '다음 문자'라면
+        //      그리고 이전에 방문한 칸이 아니라면
+        if (board[i - 1]?.[j] === nextChar &&
+            !(visitedCell.has(i - 1) && visitedCell.get(i - 1).has(j))) {
+
+            // 현재 칸의 윗칸을 방문 기록에 추가.
+            if (!visitedCell.has(i - 1)) visitedCell.set(i - 1, new Map());
+            visitedCell.get(i - 1).set(j, true);
+
+            // 윗칸과 그 다음 문자를 두고 재귀호출하고
+            up = aug(i - 1, j, word, nextCharIndex + 1, visitedCell);
+            // 그 결과가 true면 곧바로 true를 반환한다. 
+            if (up) return true;
+        }
+        //  하: 아래칸이 존재하고 그 칸이 '다음 문자'라면
+        if (board[i + 1]?.[j] === nextChar &&
+            !(visitedCell.has(i + 1) && visitedCell.get(i+ 1).has(j))) {
+
+            // 현재 칸의 아래 칸을 방문 기록에 추가
+            if (!visitedCell.has(i + 1)) visitedCell.set(i + 1, new Map());
+
+            visitedCell.get(i + 1).set(j, true);
+            down = aug(i + 1, j, word, nextCharIndex + 1, visitedCell);
+            if (down) return true;
+        }
+
+        //  좌: 
+        if (board[i]?.[j - 1] === nextChar &&
+            !(visitedCell.has(i) && visitedCell.get(i).has(j - 1))) {
+
+            // 일단 현재 칸의 '좌'에 대해서는 확실하니까 '방문 기록'에 넣어준다.
+            if (!visitedCell.has(i)) visitedCell.set(i, new Map());
+            visitedCell.get(i).set(j - 1, true);
+
+            // 다음 탐색 속행
+            left = aug(i, j - 1, word, nextCharIndex + 1, visitedCell);
+            if (left) return true;
+        }
+        //  우: 
+        if (board[i]?.[j + 1] === nextChar &&
+            !(visitedCell.has(i) && visitedCell.get(i).has(j + 1))) {
+
+            // 현재 칸의 오른칸을 방문 기록에 추가.
+            if (!visitedCell.has(i)) visitedCell.set(i, new Map());
+            visitedCell.get(i).set(j + 1, true);
+
+            right = aug(i, j + 1, word, nextCharIndex + 1, visitedCell);
+            if (right) return true;
+        }
+
+        // 내 방위의 결과가 모두 false면, 이전 단계로 후퇴(backtracking)하여 이전 문자를 탐색한다. 즉, 추가했던 '현재 칸 방문 기록'을 지운다. 
+        visitedCell.get(i).delete(j);
+
+        // 3. 
+        return false;
+    }
+
+    return result;
+}
+
 export default {
-    solution: findWords2,
+    solution: findWords3,
 }

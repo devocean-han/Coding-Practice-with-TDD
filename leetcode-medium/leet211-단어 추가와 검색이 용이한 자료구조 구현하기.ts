@@ -199,7 +199,7 @@ class Trie2 {
     }
 }
 
-// Trie2를 보고 뽑은 레시대로 스스로 작성해본 버전: 
+// Trie2를 보고 뽑은 레시피대로 스스로 작성해본 버전: 
 class Trie3 {
 	#child: { [key: string]: Trie3 };
 	#isWord: boolean;
@@ -238,6 +238,7 @@ class Trie3 {
 		return curr.#isWord;
 	}
 } 
+
 export default {
 	WordDictionary: Trie3,
 }

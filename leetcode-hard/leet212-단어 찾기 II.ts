@@ -551,7 +551,7 @@ export default {
 
 
 // =======================================================
-// 성공
+// 성공 해답(다른 사람 풀이 참고)
 class Trie2 {
     nodes = {} as {[index: string]: Trie2};
     word = '';
@@ -599,7 +599,7 @@ function findWord(board: Array<Array<string>>, i: number, j: number,
 	board[j][i] = c;
 }
 
-function findWords(board: string[][], words: string[]): string[] {
+function findWords5(board: string[][], words: string[]): string[] {
     const root = new Trie2();
     for(const word of words) {
         root.addWord(word);
@@ -630,9 +630,7 @@ class TrieNode {
     }
 }
 
-
-
-function findWords(board: string[][], words: string[]): string[] {
+function findWords6(board: string[][], words: string[]): string[] {
 
     let answer: string[] = [];
     let row = board.length;

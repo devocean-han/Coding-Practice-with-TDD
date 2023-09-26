@@ -64,6 +64,9 @@ class TreeNode {
 	}
 }
 
+// 전위 순회: '나'와 두 자식을 기준으로, 나->왼자식->오른자식 순으로 탐색하는 것.
+// 그렇게 탐색한 순서대로 숫자를 담아 배열로 반환하기
+
 // iterative solution
 function preorderTraversal(root: TreeNode | null): number[] {
     // 트리의 노드가 0개면 곧바로 빈 배열 반환:

@@ -56,7 +56,7 @@
 import { TreeNode } from "../Class 모음";
 
 // iterative solution
-function postorderTraversal(root: TreeNode | null): number[] {
+function postorderTraversal1(root: TreeNode | null): number[] {
 	if (!root) return [];
 
 	const resultMap: Map<TreeNode, number> = new Map();
@@ -88,5 +88,5 @@ function postorderTraversal2(root: TreeNode | null): number[] {
 }
 
 export default {
-	solution: postorderTraversal2,
+	solution: postorderTraversal1,
 }

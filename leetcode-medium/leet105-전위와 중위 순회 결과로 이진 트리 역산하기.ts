@@ -60,8 +60,14 @@ function buildTree(preorder: number[], inorder: number[]): TreeNode | null {
 	if (!preorder.length) return null;
 
 	let tree: TreeNode = new TreeNode(preorder[0]);
-	while (preorder.length) {
-
+	// preorder = [3,9,20,15,7], inorder = [9,3,15,20,7]
+	// tree: [3,9,20,null,null,15,7]
+	for (let i = 1; i < preorder.length; i++) {
+		const node = new TreeNode(preorder[i]);
+		// 새로 만든 노드가 부모의 왼 자식인지 오른 자식인지는 inorder도 참고하면 알 수 있다. 
+		// 예를 들어 inorder의 첫 값이 preorder 첫 값, 즉 root와 같다면 root에게 왼 자식이 없음을 알 수 있다. 
+		if (tree.val === inorder[0]) tree.right = node, tree = tree.right;
+		else tree.left = node, tree = tree.left;
 	}
     
 	return tree;

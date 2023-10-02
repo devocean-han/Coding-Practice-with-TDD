@@ -109,28 +109,13 @@ function buildTree(preorder: number[], inorder: number[]): TreeNode | null {
 					}
 					j++;
 				}
-				console.log(`curVal: ${curVal}, leftLimit: ${leftLimit}, rightLimit: ${rightLimit}`)
 				// leftLimit과 rightLimit을 기준으로 딱 맞는 노드 위치 찾기:
-				// ...혹시 rightLimit이 있든 없든 그냥 가장 가까운 leftLimit의 직속 오른 자식이 되는 게 맞는거 아닐까? 
+				// rightLimit이 있든 없든 그냥 가장 가까운 leftLimit의 직속 오른 자식이 되도록 배치한다. 
 				pointer = treeMap.get(leftLimit);
 				pointer.right = new TreeNode(curVal);
 				treeMap.set(curVal, pointer.right);
-				// if (rightLimit) {
-				// 	pointer = treeMap.get(rightLimit).left;
-				// 	while (true) {
-				// 		if (pointer?.val === leftLimit) {
-				// 			pointer.right = new TreeNode(curVal);
-				// 			treeMap.set(curVal, pointer.right);
-				// 			break;
-				// 		}
-				// 		pointer = pointer.left;
-				// 	}
-				// } else {
-				// 	pointer = treeMap.get(leftLimit);
-				// 	pointer.right = new TreeNode(curVal);
-				// 	treeMap.set(curVal, pointer.right);
-				// }
-				break; // j for문 빠져나옴.
+				
+				break; 
 			}
 		}
 	}

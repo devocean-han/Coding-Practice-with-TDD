@@ -80,6 +80,9 @@ function buildTree(preorder: number[], inorder: number[]): TreeNode | null {
 	treeMap.set(preorder[0], root);
 	// preorder = [3,9,20,15,7], inorder = [9,3,15,20,7]
 	// tree: [3,9,20,null,null,15,7]
+	// 룰1: inorder에서 왼쪽에 위치하면, 왼쪽 자식이다.
+	// 룰2: inorder에서 오른쪽에 위치하면, 오른 자손의 가장 가까운 공통 조상의 첫 오른 자식이다. 
+	
 	for (let i = 1; i < preorder.length; i++) {
 		const preVal = preorder[i - 1];
 		const curVal = preorder[i];
@@ -123,7 +126,69 @@ function buildTree(preorder: number[], inorder: number[]): TreeNode | null {
 	return root;
 };
 
+// 재귀로 풀어본:
+function buildTree2(preorder: number[], inorder: number[]): TreeNode | null {
+	// pre[1,2,4,6,8,5,7,3]
+	//  in[6,8,4,2,5,7,1,3]
+	
+	// inMap{val: inorderIndex}
+	const inMap: Map<number, number> = new Map(inorder.map((v, i) => [v, i]));
+
+	// treeMap{inorderIndex: TreeNode}
+	const treeMap: Map<number, TreeNode> = new Map();
+	treeMap.set(inMap.get(preorder[0]), new TreeNode(preorder[0]));
+
+	// preorder에서 연이은 두 수를 인수로 받아 뒷 수를 tree의 알맞은 자리에 넣는다.
+	// preIndex: preorder[]에서 연이은 두 수 중 앞의 수가 inorder[]에서 차지하는 자리(인덱스). 
+	// 			 이미 tree에 배치된 수이다.
+	// curIndex: preorder[]에서 연이은 두 수 중 뒤의 수가 inorder[]에서 차지하는 자리(인덱스). 
+	// 			 지금 알맞은 자리를 찾으려는 대상이 되는 수이다. 
+	function aug(preIndex: number, curIndex: number) {
+		if (curIndex < preIndex) {
+			const curNode = new TreeNode(inorder[curIndex]);
+			treeMap.get(preIndex).left = curNode;
+			treeMap.set(curIndex, curNode);
+			return;
+		}
+		let i = preIndex + 1;
+		while (i < curIndex) {
+			if (treeMap.has(i)) {
+				aug(i, curIndex);
+				return;
+			}
+			i++;
+		}
+
+		const curNode = new TreeNode(inorder[curIndex]);
+		treeMap.get(preIndex).right = curNode;
+		treeMap.set(curIndex, curNode);
+	}
+
+	for (let i = 1; i < preorder.length; i++) {
+		aug(inMap.get(preorder[i - 1]), inMap.get(preorder[i]));
+	}
+
+	return treeMap.get(inMap.get(preorder[0]));
+}
+
+// 다른 재귀 풀이:
+function buildTree3(preorder: number[], inorder: number[]): TreeNode | null {
+	if (!inorder.length) return null;
+
+	const rootVal = preorder.shift()!;
+	const inOrderRootIndex = inorder.findIndex((val) => val === rootVal);
+	const inOrderLeftBranch = inorder.slice(0, inOrderRootIndex);
+	const inOrderRightBranch = inorder.slice(inOrderRootIndex + 1);
+	
+	const tree = new TreeNode(rootVal);
+	tree.left = buildTree3(preorder, inOrderLeftBranch);
+	tree.right = buildTree3(preorder, inOrderRightBranch);
+
+	return tree;
+}
+
+
 export default {
-	solution: buildTree,
+	solution: buildTree3,
 	TreeNode: TreeNode,
 }

@@ -72,7 +72,7 @@ import { TreeNode } from "../Class 모음";
 이렇게 세 가지가 가능하다.
 */
 // 막무가내 풀이
-function buildTree(preorder: number[], inorder: number[]): TreeNode | null {
+function buildTree1(preorder: number[], inorder: number[]): TreeNode | null {
 	if (!preorder.length) return null;
 
 	const treeMap: Map<number, TreeNode> = new Map();
@@ -187,6 +187,45 @@ function buildTree3(preorder: number[], inorder: number[]): TreeNode | null {
 	return tree;
 }
 
+// 재귀도, stack 이용도 없는 풀이라는데...
+// Time complexity O(N)
+// Space complexity O(1)
+function buildTree(preorder: number[], inorder: number[]): TreeNode | null {
+	let root = null;
+	let top = null;
+	let pop = null;
+	let i = 0;
+
+	// preorder를 순회하며
+    for (const val of preorder) {
+        let node = new TreeNode(val)
+		if (pop) {
+			// pop이 null이 아니면 pop의 오른 자식으로 등록하고 pop을 null로 설정
+			pop.right = node;
+			pop = null;
+        } else if (top) {
+			// pop은 null이고 top이 null이 아니라면 top의 왼 자식으로 등록하고
+			top.left = node;
+        } else {
+			// pop과 top 둘 다 null이면 root 노드로 등록한다.
+			// (첫 진입 시에만 root 삼게 됨)
+            root = node
+		}
+		
+		// top을 현재 노드의 오른 자식으로 삼고(??) top 포인터는 현재 노드를 가리키게 만든다. 
+		node.right = top;
+		top = node  // "push"
+		// top 포인터가 null이 아니며 그 값이 inorder의 i인덱스와 같을 동안
+        while (top && top.val == inorder[i]) {
+			// pop 포인터도 top을 가리키게 만들고 top 포인터는 pop의 오른 자식을 가리키게 한다. 그리고 pop의 오른 자식을 null로 지정 후 i 증가
+			pop = top;
+			top = pop.right;
+			pop.right = null;  // "pop"
+			++i;
+        }
+    }
+    return root
+};
 
 export default {
 	solution: buildTree3,

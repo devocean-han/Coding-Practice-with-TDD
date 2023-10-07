@@ -78,11 +78,12 @@ function solution2(root: TreeNode | null, k: number): number {
 		const node = stack[stack.length - 1];
 
 		if (node.left && !treeMap[node.left.val]) {
-			// 왼 자식을 처리 대기시켜야 한다.
+			// 1. 왼 자식을 처리 대기시켜야 한다.
 			stack.push(node.left);
 		}
 		else {
-			// '나'를 처리하고 오른 자식을 처리 대기시킨다.
+			// 2. '나'를 처리하고 
+			// 3. 오른 자식을 처리 대기시킨다.
 			// '나'를 처리함 = 이번이 k번째 처리라면 곧바로 그 수를 리턴시키고 아니면 k를 하나 줄인다
 			if (k === 1) return node.val;
 			else {
@@ -107,8 +108,34 @@ function solution3(root: TreeNode | null, k: number): number {
 	return inorderArr(root)[k - 1];
 }
 
-// 예고: Morris Traversal을 이용한 중위 순회 구현하기
-// Morris Traversla(모리스 순회): 중위 순회를 수행하는 공간 효율적인 알고리즘. 재귀나 Stack을 사용하지 않고도 이진 트리를 순회할 수 있어 공간 복잡도 O(1)로 완성이 가능하다. 
+// Morris Traversla(모리스 순회): 중위 순회를 수행하는 공간 효율적인 알고리즘. 재귀나 Stack을 사용하지 않고도 이진 트리를 순회할 수 있어 공간 복잡도 O(1)로 완성이 가능하다.
+// stack을 이용한 풀이에서와 같은 용어로 주석을 달았다:
+// '처리' = 방문하는 것. stack에서 뽑아서 사용하는 것
+// '처리 대기' = 나중에 방문할 수 있도록 stack에 담아두는 것
+function solution4(root: TreeNode | null, k: number): number {
+	let pointer = root;
+	while (pointer !== null) {
+		// 1. 현재 노드의 왼 자식이 있다면 왼 자식을 '처리 대기'시켜야 한다.
+		if (pointer.left !== null) {
+			const left = pointer.left; // 왼 자식을 저장해둔다. 
+			pointer.left = null; // 원래 왼 자식의 자리를 비운다.
+			
+			// rightmost라는 포인터를 하나 만들어서 더 이동할 수 없을 때까지 오른 자식으로 이동한다.
+			let rightmost = left;
+			while (rightmost.right !== null) {
+				rightmost = rightmost.right;
+			}
+			rightmost.right = pointer; // 마지막 오른 자식에게 포인터(root)를 오른 자식으로 붙여준다.
+			pointer = left; // 과정을 반복하도록 포인터가 다시 아까 저장해둔 left를 가리키도록 만든다. 
+		} else {
+			// 2. '나'를 '처리'한다. (이번이 k번째 처리라면 곧바로 그 수를 리턴시키고 아니면 k를 하나 줄인다)
+			if (--k !== 0) pointer = pointer.right;
+			else break;
+		}
+	}
+	
+	return pointer.val;
+}
 
 export default {
 	solution: solution3,

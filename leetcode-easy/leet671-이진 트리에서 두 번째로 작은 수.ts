@@ -92,21 +92,53 @@ function findSecondMinimumValue(root: TreeNode | null): number {
 			return secondMin === root.val ? -1 : secondMin;
 		// 1. 두 자식 중 더 큰 값을 이전 후보와 비교할 새 후보로 지정한다. 
 		let bigger, lesser;
-		if (pointer.left.val === pointer.val)
+		if (pointer.left.val === pointer.val) {
+			// 두 자식이 값이 같으면 둘 중 자식이 있는 쪽을 lesser로 삼아 타고 내려간다.
+			// 두 자식이 값이 같고 둘 다 자식이 있으면? => 양쪽 모두로 진행해야 하므로 이대로는 더 진행할 수 없고 재귀로 만들어야 한다...
 			[bigger, lesser] = [pointer.right, pointer.left];
+		}
 		else 
 			[bigger, lesser] = [pointer.left, pointer.right];
 		// 2. 지금 후보가 이전 후보보다 더 큰 수면 이전 후보를 반환한다. 
 		if (bigger.val > secondMin)
 			return secondMin;
 			// return secondMin === root.val ? -1 : secondMin;
-		else
-			secondMin = bigger.val, pointer = lesser;
+		else {
+			secondMin = bigger.val === root.val ? secondMin : bigger.val;
+			pointer = lesser;
+		}
 	} 
 
 	return -1;
 };
 
+function solution2(root: TreeNode | null): number {
+	// 보조 재귀함수로 재귀함수 바깥의 local 변수를 업데이트하도록 한다: 
+	let secondMin = Infinity;
+
+	function aug(node: TreeNode | null) {
+		// 0. 탈출 조건: '내'가 null이거나, secondMin보다 작지 않다면 종료
+		if (!node || node.val >= secondMin)
+			// 0-1. '내'가 만약 자식이 없는 잎 노드라면 바로 다음 재귀 호출에서 탈출하게 된다. 
+			// 0-2. 만약 '내'가 현재까지의 secondMin보다 크면 내 자손 중 더 작은 secondMin 후보가 나올 가망이 없으므로, 이 루트의 탐색을 종료한다.
+			// 0-3. '내'가 현재까지의 secondMin과 값이 같아도 내 자손 중 더 작은 secondMin 후보가 나올 가망은 없다. 똑같이 탈출하도록 한다.
+			return; 
+
+		// 1. 아직 탈출하지 않았다면 '내'가 nsecondMi보다 작다는 뜻.
+		// 	  만약 '내'가 최솟값인 root.val보다 크다면 secondMin을 업데이트해준다.
+		if (node.val > root.val) secondMin = node.val;
+
+		// 2. 두 자식 루트로 진행
+		aug(node.left);
+		aug(node.right);
+	}
+	
+	aug(root);
+
+	// secondMin이 한 번도 Infinity에서 다른 값으로 업데이트되지 않은 상태라면, -1을 반환하도록 한다.
+	return secondMin === Infinity ? -1 : secondMin;
+}
+
 export default {
-	solution: findSecondMinimumValue,
+	solution: solution2,
 }

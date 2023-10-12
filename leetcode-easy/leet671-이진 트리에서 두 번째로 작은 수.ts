@@ -71,7 +71,7 @@ import { TreeNode } from "../Class 모음";
 
 // => 한 노드는 자식이 둘 있거나 없다. 
 // 	  한 노드는 두 자식 중 작은 쪽과 값이 같다. = 한 노드의 두 자식은 부모와 같은 값 하나, 더 큰 값 하나로 구성된다. 이 중 전체에서 두 번 째로 작은 수를 찾아야 한다. 후손으로 갈수록 무조건 커지고, 잘해야 시조인 root의 값을 그대로 최소값으로 대물림할 수 있을 뿐. 그렇다면 루트에서 시작해서, 자식이 있다면 두 자식 중 큰 쪽을 최소값 후보로 저장해둔다. 그리고 두 자식 중 작은 쪽으로 내려가서 그것의 두 자식 중 큰 쪽을 이미 있는 후보와 비교한다. 만약 이미 있던 후보보다 크다면, 이미 있던 후보가 두 번째 최솟값 확정이다. 만약 이미 있던 후보보다 작다면, 후보를 이 값으로 교체하고 다시 두 자식 중 작은 값의 두 자식을 비교한다. 이를 반복한다. 
-function findSecondMinimumValue(root: TreeNode | null): number {
+function findSecondMinimumValue1(root: TreeNode | null): number {
 	// 1. 지금 노드의 두 자식 중 큰 쪽을 이미 있는 '두 번째 최소값 후보'와 비교한다.
 	// 1-1. 만약 이미 있던 후보보다 크다면 이미 있던 후보를 반환한다. 
 	// 1-2. 만약 이미 있던 후보보다 작거나 같다면 이 값을 후보로 대체하고 다른 편 자식으로 내려가 비교를 계속한다. 
@@ -112,7 +112,7 @@ function findSecondMinimumValue(root: TreeNode | null): number {
 	return -1;
 };
 
-function solution2(root: TreeNode | null): number {
+function findSecondMinimumValue(root: TreeNode | null): number {
 	// 보조 재귀함수로 재귀함수 바깥의 local 변수를 업데이트하도록 한다: 
 	let secondMin = Infinity;
 
@@ -140,5 +140,5 @@ function solution2(root: TreeNode | null): number {
 }
 
 export default {
-	solution: solution2,
+	solution: findSecondMinimumValue,
 }

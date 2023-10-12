@@ -187,6 +187,27 @@ function buildTree3(preorder: number[], inorder: number[]): TreeNode | null {
 	return tree;
 }
 
+// 또다른 재귀 풀이: 
+function buildTree4(preorder: number[], inorder: number[]): TreeNode | null {
+	if (!inorder.length) return null;
+
+	function buildSubTree(preStart: number, preEnd: number, inStart: number, inEnd: number) {
+		if (preStart > preEnd || inStart > inEnd)
+			return null;
+
+		const rootVal = preorder[preStart];
+		const root = new TreeNode(rootVal);
+		const inorderIndex = inorder.indexOf(rootVal);
+
+		root.left = buildSubTree(preStart + 1, preStart + inorderIndex - inStart, inStart, inorderIndex - 1);
+		root.right = buildSubTree(preStart + 1 + inorderIndex - inStart, preEnd, inorderIndex + 1, inEnd);
+
+		return root;
+	}
+
+	return buildSubTree(0, preorder.length - 1, 0, inorder.length - 1);
+} 
+
 // 재귀도, stack 이용도 없는 풀이라는데...
 // Time complexity O(N)
 // Space complexity O(1)
@@ -228,6 +249,6 @@ function buildTree(preorder: number[], inorder: number[]): TreeNode | null {
 };
 
 export default {
-	solution: buildTree3,
+	solution: buildTree4,
 	TreeNode: TreeNode,
 }

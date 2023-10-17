@@ -226,7 +226,7 @@ class KthLargest {
     //^ 요소 추가 및 K번째로 큰 요소 반환
     // Time complexity: O(log N)
     // Space complexity: O(1)
-    add(value: number): number {
+    add1(value: number): number {
         //~ 시나리오1: 현재 최소 힙 길이가 k에 미치지 못하는 경우: 단순히 최소 힙에 삽입시켜준다. 그 후 힙의 최소값을 반환한다. 
         if (this.minHeap.getLength() < this.k) { // O(log N)
             this.minHeap.insert(value);
@@ -245,6 +245,17 @@ class KthLargest {
                 return this.minHeap.getMin();
             }
         }
+    }
+
+    // 리팩토링한 add
+    add(value: number): number {
+        if (this.minHeap.getLength() < this.k)
+            this.minHeap.insert(value);
+        else if (value >= this.minHeap.getMin()) {
+            this.minHeap.popMin();
+            this.minHeap.insert(value);
+        }
+        return this.minHeap.getMin();
     }
 }
 

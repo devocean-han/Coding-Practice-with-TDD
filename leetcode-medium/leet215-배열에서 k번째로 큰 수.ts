@@ -43,14 +43,8 @@
 function findKthLargest(nums: number[], k: number): number {
 	const minHeap: MinHeap = new MinHeap();
 	for (const num of nums) {
-		// 1. k개에 못 미치면 그냥 넣고 min 반환
-		//    k개면(그 이상은 될 수 없음) 
-		// 2. 지금 넣는 수가 min보다 작으면 큰 수 순위에 변동을 미치지 못함. 그냥 지금 min 반환
-		// 3. 지금 넣는 수가 min보다 크면 넣는다: min을 먼저 빼고, 지금 수 넣고, 지금 min을 반환
-		
-		// => 'min 반환'부를 떼면, 그냥 넣는 동작만 완성할 수 있다: 
 		// 1. k개에 못 미치면 그냥 넣기
-		// 2. k개이고 지금 넣는 수가 min보다 크거나 같으면면: min을 먼저 빼고, 지금 수를 넣기
+		// 2. k개이고 지금 넣는 수가 min보다 크거나 같으면: min을 먼저 빼고, 지금 수를 넣기
 		if (minHeap.getLength() < k)
 			minHeap.insert(num);
 		else if (num >= minHeap.getMin()) {

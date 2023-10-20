@@ -53,6 +53,7 @@
  * 
  */
 
+// ⇒ 좌표 평면에 흩어져 있는 점들의 위치[x,y]가 주어졌을 때 원점에 가장 가까운 k개의 점들을 따로 모아 반환하기
 
 function kClosest1(points: number[][], k: number): number[][] {
 	const maxHeap: MaxHeap = new MaxHeap();
@@ -74,8 +75,8 @@ interface point {
 	position: [number, number];
 	distance: number;
 }
+
 class MaxHeap {
-	// private heap: number[];
 	private heap: point[];
 
 	constructor() {

@@ -72,6 +72,8 @@
  * 
  */
 
+import { MinHeap, MaxHeap } from "../Class 모음";
+
 // heap의 크기를 전체 / 2로 고정시키고, 더 큰 값이 들어오면 넣고 더 작은 값이 들어오려고 하면 통과시킨다. min heap이어야 겠다. 그러면 '현재까지의 중위값'을 구하게 될 때 제일 앞의 값 하나를 뽑든지, 앞의 값 두 개의 평균을 반환하든지 하면 되겠다.
 // findMedian: heap의 길이가 홀수일 때(?) min을 반환. 짝수일 때(?)는 min 두 개 값의 평균을 반환
 // addNum: heap에 가상의 '전체 요소 개수'를 저장하고 있는 변수 trueTotal이 있다면...
@@ -132,7 +134,7 @@ class BinarySearchTree {
     }
 }
 
-class MedianFinder {
+class MedianFinder1 {
     private tree: BinarySearchTree;
     constructor() {
         this.tree = new BinarySearchTree();
@@ -180,3 +182,92 @@ class MedianFinder {
  * obj.addNum(num)
  * var param_2 = obj.findMedian()
  */
+
+// 방법2: Min과 Max priority queue 이용하기:
+// 작은 값들은 max q에, 큰 값들을 min q에 담고서 두 개 길이를 균형잡히게 유지하기.
+// 예: maxQ[2,1], minQ[3,4]
+/*      다음으로 5를 넣는다고 하면, minQ[3,4,5]
+        다음으로 6을 넣는다면, minQ[3,4,5,6]=>[4,5,6] 그리고 maxQ[3,2,1]
+        ....
+        된다!
+*/
+/* 
+ ^ 필요 자료 구조: Min heap과 Max heap
+ ^ addNum의 로직: 
+    1. 추가하려는 수가 현재 min heap의 .getMin()과 같거나 더 크면 min heap에 넣고, 더 작으면 max heap에 넣는다. 
+    2. 이 때 추가하려는 힙의 길이가 반대편 힙보다 크면(= +1이면) 현재 힙.pop()하여 반대쪽에 넣어준 다음에 새 수를 본인 힙에 넣어준다. 그렇지 않으면(= 같거나 -1이면) 그냥 넣어준다. 
+    3. 처음엔(두 힙 모두 길이가 0이면) min heap에 넣어준다. 
+    => O(2 log N)
+    
+    수정: 
+    1. 이전과 동일
+    2. 새 수를 추가하고서 두 힙의 길이가 2 이상 차이나면, 더 긴 쪽에서 .pop()하여 반대쪽에 넣어준다.
+    3. 이전과 동일
+
+ ^ findMedian의 로직: 
+    1. finMdeian()이 불린 시점에서 두 힙의 길이가 같으면 각각의 min과 max를 get()하여 평균을, 둘의 길이가 다르면 더 긴 쪽에서 get()한 값을 반환한다. 
+    => O(1)
+*/
+class MedianFinder {
+    minHeap: MinHeap
+    maxHeap: MaxHeap
+    constructor() {
+        this.minHeap = new MinHeap();
+        this.maxHeap = new MaxHeap();
+    }
+
+    addNum(num: number) {
+        // let minLength = this.minHeap.getLength();
+        // let maxLength = this.maxHeap.getLength();
+        // if (minLength === 0 && maxLength === 0) {
+        //     this.minHeap.insert(num);
+        //     return;
+        // }
+
+        // if (num >= this.minHeap.getMin()) { // 새 수를 min heap에 넣어준다.
+        //     if (minLength > maxLength) {
+        //         const poppedNum = this.minHeap.popMin();
+        //         this.maxHeap.insert(poppedNum);
+        //     }
+        //     this.minHeap.insert(num);
+        // } else { // 새 수를 max heap에 넣어준다.
+        //     if (maxLength > minLength) {
+        //         const poppedNum = this.maxHeap.popMax();
+        //         this.minHeap.insert(poppedNum);
+        //     }
+        //     this.maxHeap.insert(num);
+        // }
+        
+        // 수정 후: 
+        if (num < this.minHeap.getMin())
+            this.maxHeap.insert(num);
+        else
+            this.minHeap.insert(num);
+        // initially(when both lengths are 0), the number goes to the min heap naturally. 
+
+        const minLength = this.minHeap.getLength();
+        const maxLength = this.maxHeap.getLength();
+        if (minLength - maxLength >= 2) { // min heap에서 뽑아서 max heap으로
+            const popped = this.minHeap.popMin();
+            this.maxHeap.insert(popped);
+        }
+        if (maxLength - minLength >= 2) { // max heap에서 뽑아서 min heap으로
+            const popped = this.maxHeap.popMax();
+            this.minHeap.insert(popped);
+        }
+    }
+
+    findMedian(): number {
+        const minLength = this.minHeap.getLength();
+        const maxLength = this.maxHeap.getLength();
+        const min = this.minHeap.getMin();
+        const max = this.maxHeap.getMax();
+        if (minLength === maxLength)
+            return (min + max) / 2;
+        return (minLength > maxLength) ? min : max;
+    }
+}
+
+export default {
+    MedianFinder,
+}

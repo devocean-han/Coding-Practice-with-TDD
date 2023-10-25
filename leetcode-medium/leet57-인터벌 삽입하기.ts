@@ -221,9 +221,111 @@ function insert2(intervals: number[][], newInterval: number[]): number[][] {
 	return intervals;
 };
 
+// 아이디어2: 새롭게 배열을 만든다. 통합된 시작점 전의 점까지를 넣고, 통합된 시작점을 넣고, 이후 점들은 건너뜀. 이후 통합된 끝점와 그 이후의 점들을 넣고서 두 짝씩 묶는다. 틀림없이 두 짝이 맞게 되며, 반환한다. 
+function insert3(intervals: number[][], newInterval: number[]): number[][] {
+	// 0. 
+	if (!intervals.length) return [newInterval];
+	// // newInterval이 마지막에 위치해야 하는 경우, 바로 넣어서 반환
+	// if (intervals[intervals.length - 1][1] < newInterval[0])
+	// 	return [...intervals, newInterval];
+
+	// 편하게 하기 위해 intervals를 평면화시킴([[1,3],[6,9]] => [1,3,6,9])
+	const dots = intervals.flatMap((interval) => interval);
+	// console.log(dots);
+
+	const result = [];
+	const [newStart, newEnd] = newInterval;
+	let newStartFound = false, newEndFound = false;
+	let i = 0; 
+	
+	// newStart이 나타나는 지점 찾기
+	for (; i < dots.length; i++) {
+		if (dots[i] >= newStart) {
+			if (dots[i] !== newStart && i % 2 === 0) { // 간격 '외'임
+				result.push(newStart);
+			} else { // 간격 '내'임. 지금 i 이전 점을 '시작점'으로 삼는다.
+				// i부터 이후 나타나는 점들을 건너뜀. 
+				if (dots[i] === newStart && i % 2 === 0) { // 지금 i를 '시작점'으로 삼는다. 
+					result.push(dots[i]);
+				} else { // i 이전 점을 '시작점'으로 삼는다
+					// = i부터는 건너뜀	
+				}
+			}
+			newStartFound = true;
+			break;
+		}
+		// newStart이 나타나기 전까지는 점들을 다 넣어준다. 
+		else {
+			result.push(dots[i]);
+		}
+	}
+
+	// newEnd가 나타나는 지점 찾기
+	for (; i < dots.length; i++) {
+		if (dots[i] >= newEnd) {
+			if (dots[i] !== newEnd && i % 2 === 0) { // 간격 '외'임
+				result.push(newEnd);
+			} else {
+				if (dots[i] === newEnd && i % 2 === 0) { // i 다음 점을 '끝점'으로 삼는다 = i까지 건너뛴다
+					i++;
+				} else { // i를 '끝점'으로 삼는다 = 점 i는 추가한다.
+					// result.push(dots[i]);
+				}
+			}
+			newEndFound = true;
+			break; // FIXME: 하기 전에 점이 겹치지 않았으면 i--를 해줘야 함. 
+		}
+		// newEnd가 나타나기 전까지는 점들을 다 건너뛴다.
+	}
+
+	// newEnd 이후 점들을 다 넣어주기
+	result.push(...dots.slice(i));
+	
+	// dots의 끝점에 도달할때까지 newStart이나 newEnd를 찾을 수 없는 경우
+	if (!newStartFound)
+		// 제일 마지막에 newIntervals의 두 점을 넣어준다
+		result.push(newStart, newEnd);
+	else if (!newEndFound)
+		// 끝점 newEnd만 추가해준다. 
+		result.push(newEnd);
+	
+	// 최종 점들을 두 짝씩 묶어서 반환하기
+	const newIntervals = []
+	for (let i = 0; i < result.length; i += 2) {
+		newIntervals.push([result[i], result[i + 1]]);
+	}
+	return newIntervals;
+}
+
+// 다른 해법: 
+function insert4(intervals: number[][], newInterval: number[]): number[][] {
+	const newIntervals = [];
+	const m = intervals.length;
+	let i = 0;
+
+	while (i < m && intervals[i][1] < newInterval[0]) {
+		newIntervals.push(intervals[i]);
+		i++;
+	}
+
+	while (i < m && intervals[i][0] <= newInterval[1]) {
+		newInterval[0] = Math.min(intervals[i][0], newInterval[0]);
+		newInterval[1] = Math.max(intervals[i][1], newInterval[1]);
+		i++;
+	}
+
+	newIntervals.push(newInterval);
+
+	while (i < m) {
+		newIntervals.push(intervals[i]);
+		i++;
+	}
+
+	return newIntervals;
+}
 // 아이디어3: 어차피 기존 intervals의 모든 숫자 중 같은 인터벌의 처음-끝 외에는 겹치는 숫자가 없이 오름차순으로 정렬되어있을 것이므로.... 새롭게 들어가는 애의 숫자 두 개를 그 사이에 자연스럽게 끼워넣는다... 그 사이의 숫자들을 전부 지워준다... 만약 새로 들어간 '시작'점 직전의 점이 어떤 인터벌의 끝점이면 괜찮다. 그렇지만 어떤 인터벌의 시작점이라면, 새로 들어간 '시작'점을 지워준다. 끝점도 마찬가지로 새로 들어간 '끝'점 직후의 점이 어떤 인터벌의 끝점이면, 새로 들어간 '끝'점을 지워주고 그렇지 않으면 가만 냅둔다. 
 // => 뭔가 오름차순이 필요하고 숫자를 하나하나 체크해야 하니까 힙을 이용할 수 있을 것 같다... 아니면 트리? 그러니까 끝점에 대해서는 최대 힙을 이용하는 것이다. ... 시점에 대해서는 최소 힙을...
 
 export default {
-	solution: insert2,
+	solution: insert4,
 }

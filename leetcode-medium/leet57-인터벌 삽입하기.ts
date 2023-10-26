@@ -225,13 +225,9 @@ function insert2(intervals: number[][], newInterval: number[]): number[][] {
 function insert3(intervals: number[][], newInterval: number[]): number[][] {
 	// 0. 
 	if (!intervals.length) return [newInterval];
-	// // newInterval이 마지막에 위치해야 하는 경우, 바로 넣어서 반환
-	// if (intervals[intervals.length - 1][1] < newInterval[0])
-	// 	return [...intervals, newInterval];
 
 	// 편하게 하기 위해 intervals를 평면화시킴([[1,3],[6,9]] => [1,3,6,9])
 	const dots = intervals.flatMap((interval) => interval);
-	// console.log(dots);
 
 	const result = [];
 	const [newStart, newEnd] = newInterval;
@@ -243,12 +239,12 @@ function insert3(intervals: number[][], newInterval: number[]): number[][] {
 		if (dots[i] >= newStart) {
 			if (dots[i] !== newStart && i % 2 === 0) { // 간격 '외'임
 				result.push(newStart);
-			} else { // 간격 '내'임. 지금 i 이전 점을 '시작점'으로 삼는다.
-				// i부터 이후 나타나는 점들을 건너뜀. 
-				if (dots[i] === newStart && i % 2 === 0) { // 지금 i를 '시작점'으로 삼는다. 
+			} else { // 간격 '내'임. 
+				if (dots[i] === newStart && i % 2 === 0) { // 지금 i를 '시작점'으로 삼고 이후 나타나는 점들을 건너뛴다. 
+					// = i번째 점은 넣어줌.
 					result.push(dots[i]);
 				} else { // i 이전 점을 '시작점'으로 삼는다
-					// = i부터는 건너뜀	
+					// = i부터 건너뜀	
 				}
 			}
 			newStartFound = true;
@@ -273,7 +269,9 @@ function insert3(intervals: number[][], newInterval: number[]): number[][] {
 				}
 			}
 			newEndFound = true;
-			break; // FIXME: 하기 전에 점이 겹치지 않았으면 i--를 해줘야 함. 
+			break;
+			// FIXME: break하기 전에 점이 겹치지 않았으면 i--를 해줘야 함.
+			// 		=> i++를 넣어주고, result.push(dots[i])를 주석 처리해준 후, 루프 바깥에서 result.push(...dots.slice(i+1))을 slice(i)로 바꿔줌으로써 달성함. 
 		}
 		// newEnd가 나타나기 전까지는 점들을 다 건너뛴다.
 	}
@@ -323,9 +321,10 @@ function insert4(intervals: number[][], newInterval: number[]): number[][] {
 
 	return newIntervals;
 }
+
 // 아이디어3: 어차피 기존 intervals의 모든 숫자 중 같은 인터벌의 처음-끝 외에는 겹치는 숫자가 없이 오름차순으로 정렬되어있을 것이므로.... 새롭게 들어가는 애의 숫자 두 개를 그 사이에 자연스럽게 끼워넣는다... 그 사이의 숫자들을 전부 지워준다... 만약 새로 들어간 '시작'점 직전의 점이 어떤 인터벌의 끝점이면 괜찮다. 그렇지만 어떤 인터벌의 시작점이라면, 새로 들어간 '시작'점을 지워준다. 끝점도 마찬가지로 새로 들어간 '끝'점 직후의 점이 어떤 인터벌의 끝점이면, 새로 들어간 '끝'점을 지워주고 그렇지 않으면 가만 냅둔다. 
 // => 뭔가 오름차순이 필요하고 숫자를 하나하나 체크해야 하니까 힙을 이용할 수 있을 것 같다... 아니면 트리? 그러니까 끝점에 대해서는 최대 힙을 이용하는 것이다. ... 시점에 대해서는 최소 힙을...
 
 export default {
-	solution: insert4,
+	solution: insert3,
 }

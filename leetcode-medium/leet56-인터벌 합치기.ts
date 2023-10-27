@@ -52,10 +52,9 @@
 // 3. 전체 인터벌을 처음부터 끝까지 이렇게 검사한다.
 
 // Time Complexity: O(n log n)
-// Space Complexity: O(log n) (in-place sorting을 하므로)
+// Space Complexity: O(n) 
 function merge1(intervals: number[][]): number[][] {
 	if (intervals.length === 1) return intervals;
-	
 	
 	// 1. start 기준으로 오름차순 정렬하기: O(N logN)
 	intervals.sort((a, b) => a[0] - b[0]);
@@ -76,9 +75,10 @@ function merge1(intervals: number[][]): number[][] {
 };
 
 // 새 result 배열 없이 해보기:
+// Time Complexity: O(n log n)
+// Space Complexity: O(log n) (in-place sorting을 하므로)
 function merge(intervals: number[][]): number[][] {
-	if (intervals.length === 1) return intervals;
-	
+	if (intervals.length === 1) return intervals;	
 	
 	// 1. start 기준으로 오름차순 정렬하기: O(N logN)
 	intervals.sort((a, b) => a[0] - b[0]);
@@ -86,12 +86,12 @@ function merge(intervals: number[][]): number[][] {
 	// 2. 어느 두 연이은 인터벌 중 앞의 end가 뒤의 start보다 크거나 같으면 병합한다: O(N)
 	let pre = intervals[0];
 	for (let i = 1; i < intervals.length; i++) {
-		// const post = intervals[i];
-		if (pre[1] >= intervals[i][0]) { // 병합하기
-			pre[1] = Math.max(pre[1], intervals[i][1]);
-			delete intervals[i];
+		const post = intervals[i];
+		if (pre[1] >= post[0]) { // 병합하기
+			pre[1] = Math.max(pre[1], post[1]);
+			delete intervals[i]; // delete post;는 안 됨 주의
 		} else { // 새 인터벌 등장. pre를 새 인터벌로 옮긴다.
-			pre = intervals[i];			
+			pre = post;			
 		}
 	}
 

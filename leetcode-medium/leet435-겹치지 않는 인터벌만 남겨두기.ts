@@ -71,8 +71,8 @@ start 오름차순으로 늘어놓고,
 문제: 만약 가장 큰 수를 가지는 인터벌이 2개라면? 그리고 3인 인터벌을 지웠지만 사실 다른 2와 2인 인터벌 두 개를 지우는 게 더 나았던 거라면? 
 
  */
-// 방법2
-function eraseOverlapIntervals(intervals: number[][]): number {
+// (실패)방법2
+function eraseOverlapIntervals1(intervals: number[][]): number {
 	// 0. 
 	if (intervals.length === 1) return 0;
 
@@ -101,12 +101,37 @@ function eraseOverlapIntervals(intervals: number[][]): number {
 			result.push(post);
 		}
 	}
-	console.log('-------------result---------------')
+	console.log('-------------result--------------')
 	console.log(result)
 
 	// 3. 반환
 	return intervals.length - result.length;
 };
+
+// (성공)방법3: 끝점 기준으로 오름차순 정렬하고 첫 인터벌을 선택한 후, 그 다음부터 '이전 인터벌의 끝'과 겹치지 않는 가장 가까운 인터벌을 찾아 선택하기를 반복. 마지막에는 총 인터벌 개수에서 선택한 인터벌 수를 뺀 값을 반환하면 된다. 
+// Time Complexity: O(n log n)
+// Space Complexity: O(log n) 
+function eraseOverlapIntervals(intervals: number[][]): number {
+	if (intervals.length === 1) return 0;
+
+	intervals.sort((a, b) => a[1] - b[1]);
+	let end = intervals[0][1]; // 정렬 후 첫 인터벌은 선택하고 시작
+	let count = 1; // result[]에 넣는 대신 숫자로 셈(=제거하지 않는 인터벌의 수 = '선택'한 인터벌의 수)
+
+	for (let i = 1; i < intervals.length; i++) {
+		const currentStart = intervals[i][0];
+
+		// 현재 인터벌이 이전 인터벌과 겹치지 안으면 현재 인터벌을 (제거하지 않는 것으로) '선택'한다. 
+		if (currentStart >= end) {
+			// '선택': count를 1 늘이고 end를 업데이트함
+			count++;
+			end = intervals[i][1]; 
+		}
+	}
+
+	// 전체 인터벌에서 제거하지 않는 총 인터벌 수를 빼 반환한다. 
+	return intervals.length - count;
+}
 
 export default {
 	solution: eraseOverlapIntervals,

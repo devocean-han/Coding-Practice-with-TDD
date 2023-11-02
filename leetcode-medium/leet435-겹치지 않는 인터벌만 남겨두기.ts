@@ -112,7 +112,7 @@ function eraseOverlapIntervals1(intervals: number[][]): number {
 // Time Complexity: O(n log n)
 // Space Complexity: O(log n) 
 function eraseOverlapIntervals(intervals: number[][]): number {
-	if (intervals.length === 1) return 0;
+	if (intervals.length <= 1) return 0;
 
 	intervals.sort((a, b) => a[1] - b[1]);
 	let end = intervals[0][1]; // 정렬 후 첫 인터벌은 선택하고 시작
@@ -133,6 +133,35 @@ function eraseOverlapIntervals(intervals: number[][]): number {
 	return intervals.length - count;
 }
 
+// 시작점 기준 정렬로 가능한 경우: 
+function eraseOverlapIntervals2(intervals: number[][]): number {
+	if (intervals.length <= 1) return 0;
+
+	intervals.sort((a, b) => a[0] - b[0]);
+
+	let end = intervals[0][1]; // 첫 인터벌의 끝점을 기억하고 시작
+	let count = 0; // 제거하는 인터벌 수
+
+	for (let i = 1; i < intervals.length; i++) {
+		const curInterval = intervals[i];
+
+		// 기억하고 있는 끝점과 현재 인터벌이 겹치면 현재 인터벌을 제거하는 것으로 선택한다.
+		if (curInterval[0] < end) {
+			// 선택: count를 1 올리고, 현재 인터벌의 끝점과 기억하고 있는 끝점 중 더 작은 값을 새 '기억하고 있는 끝점'으로 삼는다. 
+			count++;
+			end = Math.min(end, curInterval[1])
+		}
+		// 겹치지 않으면 현재 인터벌을 (제거하지 않고)통과한다.  
+		else {
+			// 통과: '기억하고 있는 끝점'을 현재 인터벌의 것으로 업데이트
+			end = curInterval[1];
+		}
+	}
+
+	// 제거한 인터벌 수를 그대로 반환
+	return count;
+}
+
 export default {
-	solution: eraseOverlapIntervals,
+	solution: eraseOverlapIntervals2,
 }

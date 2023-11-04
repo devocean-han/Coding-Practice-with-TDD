@@ -188,3 +188,49 @@ function maxSubArray5(nums: number[]): number {
 
 	return maxSum;
 }
+
+// 어떤 빠른 해답
+function maxSubArray6(nums: number[]): number {
+	let maxSum = Number.NEGATIVE_INFINITY;
+	let localSum = 0;
+	for (let i = 0; i < nums.length; i++) {
+		localSum += nums[i];
+		maxSum = Math.max(maxSum, localSum);
+		if (localSum < 0)
+			localSum = 0;
+	}
+
+	return maxSum;
+}
+
+// 재귀(Recursive) 풀이: 가능한 모든 부분 배열 조합을 탐색하기
+/* 시나리오 설명: 
+	- 각 인덱스 i마다 그 요소를 선택할수도 있고 안 할 수도 있다. 
+	- 각 시작점마다 계속해서 그 다음 요소를 선택할지 안 할지 선택지가 생기게 된다. 
+	- 시작점부터 지금 요소 까지의 부분합을 반환하는 보조 재귀 함수를 만든다. 
+	- 각 시작점마다, 이후의 현재 요소를 선택하지 않으므로써 지금까지 선택한 연속된 요소의 합을 반환하고 재귀 호출을 끝내든지, 현재 요소 역시 선택함으로써 재귀 호출(이 시작점 탐색)을 계속할 수 있다. 
+
+	재귀 호출된 함수 안에서 '이 호출은 직전 요소를 선택했던 루트이다'라는 신호를 mustPick = true라는 인수로 넘겨주기로 한다. mustPick = true를 인자로 받은 호출은 0을 반환하든지 현재 요소를 선택해서 다음 재귀 호출을 이어가든지 할 수 있다. mustPick = false를 인자로 받은 호출은 현재 요소를 선택하지 않고 재귀 호출을 이어가든지 현재 요소를 선택하고 재귀 호출을 이어가든지 선택할 수 있다. 
+*/
+// Time complexity: O(N^2)
+// Space complexity: O(N)
+function maxSubArray7(nums: number[]): number {
+	// [-2,1,-3,4,-1,2,1,-5,4]
+	// [5,4,-1,7,8]
+	
+	// 보조 재귀 함수: i=부분 배열의 시작 인덱스, mustPick=이 부분 배열이 유효한가
+	function aug(i: number, mustPick: boolean): number {
+		// 0. 탈출 조건: i가 유효한 범위를 넘어가게 되면, 0 혹은 최소값(-10,000)을 반환하면서 탈출한다.
+		if (i >= nums.length)
+			return mustPick ? 0 : -1e5;
+
+		// 이 부분 배열이 '유효하다면'
+		if (mustPick)
+			// 여기서 멈추든지 현재 요소를 선택하고 재귀 호출을 계속함 (둘 중 부분합이 더 커지는 쪽을 선택)
+			return Math.max(0, nums[i] + aug(i + 1, true));
+		// 이 부분 배열이 '유효하지 않다면', 현재 요소를 선택하는 쪽과 선택하지 않는 쪽의 재귀 호출을 모두 탐색해야 함. 
+		return Math.max(aug(i + 1, false), nums[i] + aug(i + 1, true));
+	}
+
+	return aug(0, false);
+}

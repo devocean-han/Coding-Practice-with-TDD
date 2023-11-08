@@ -1,4 +1,4 @@
-import source from './leet45-점프 게임 II.ts';
+import source from './leet45-점프 게임 II';
 const { solution } = source;
 
 describe('Jump Game II', () => {

@@ -80,10 +80,9 @@
 
 // (성공) 방법1: Two Pointer를 이용.
 function canCompleteCircuit(gas: number[], cost: number[]): number {
-	// => gas - cost 값인 net을 구하여, 각 주유소의 net + 들이 충분히 쌓여서 이후 등장하는 net - 들을 견딜 수 있으면 통과.Two Pointer를 이용해서 하나는 시작점을 기록하고, 하나는 진행 주유소(net[i])를 가리키도록 한다.net들을 더해나가다가, 어느 시점에서 < 0이 되면 그 주유소에는 도착할 수 없다는 얘기, 시작점을 한 칸 전진시킨다. 
+	// => gas - cost 값인 net을 구하여, 각 주유소의 net+ 들이 충분히 쌓여서 이후 등장하는 net- 들을 견딜 수 있으면, 한 바퀴를 돌 수 있는 셈이다. Two Pointer를 이용해서 하나는 시작점을 기록하고, 하나는 진행 주유소(net[i])를 가리키도록 하자. net들을 더해나가다가, 어느 시점에서 < 0이 되면 (그 주유소에는 도착할 수 없다는 얘기가 되므로)시작점을 한 칸 전진시킨다. 
 	const net = gas.map((num, i) => num - cost[i]);
 
-	// let zeroToStartSum = 0;
 	let sum = 0;
 	let startP = 0;
 	const n = net.length;
@@ -93,12 +92,10 @@ function canCompleteCircuit(gas: number[], cost: number[]): number {
 			do {
 				if (startP === i) {
 					// 두 포인터를 동시에 민다
-					// zeroToStartSum += net[startP];
 					startP++;
 					i++;
 				} else {
 					// 시작점이 아직 i와 멀리 떨어져있음 -> 시작점만 옮긴다
-					// zeroToStartSum += net[startP];
 					sum -= net[startP];
 					startP++;
 				}

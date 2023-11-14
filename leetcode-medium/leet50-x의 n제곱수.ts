@@ -56,20 +56,15 @@
 // Time complexity: O(N)
 // Space complexity: O(1)
 function myPow(x: number, n: number): number {
-	let result = 1;
-	let doReverse = false;
-
 	if (n < 0) {
-		doReverse = true;
+		x = 1 / x;
 		n = -n;
 	}
 
+	let result = 1;
+
 	for (let i = 0; i < n; i++) {
 		result *= x;
-	}
-
-	if (doReverse) {
-		result = 1 / result;
 	}
 
 	return result;
@@ -82,7 +77,7 @@ function myPow2(x: number, n: number): number {
 	if (n === 0) return 1;
 	if (x === 0) return 0;
 
-	return n < 0 ? x * myPow2(1 / x, -n - 1) : x * myPow2(x, n - 1);
+	return n < 0 ? 1 / x * myPow2(1 / x, -n - 1) : x * myPow2(x, n - 1);
 }
 
 
@@ -111,7 +106,7 @@ function myPow3(x: number, n: number): number {
 	}
 }
 
-// (성공)반복 계산을 줄인 개량 버전:
+// (성공)반복 계산을 줄인 개량 Divide and Conquer 풀이:
 // Time complexity: O(log N)
 // Space complexity: O(log N), for recursive call stack
 function myPow4(x: number, n: number): number {
@@ -137,3 +132,108 @@ function myPow4(x: number, n: number): number {
 	}
 }
 
+// (성공, 100배 이상 느림)재귀를 사용하지 않는 Divide and Conquer(?)
+function myPow5(x: number, n: number): number{
+	if (n < 0) {
+		x = 1 / x;
+		n = -n;
+	}
+
+	let result = n % 2 === 1 ? x : 1;
+
+	for (let i = 0; i <= n / 2 - 1; i++) { // n=6일 때와 n=7일 때를 모두 3번만 반복하도록 설정
+		result *= (x * x);
+	}
+
+	return result;
+}
+
+
+
+//^ ----------------------------------------------------------------
+// 배열에서 최대값과 최소값 구하기:
+
+/* Class Pair is used to return two values from getMinMax() */
+class Pair {
+	min: number;
+	max: number;
+
+	constructor() {
+		this.min = -1;
+		this.max = 10000000;
+	}
+}
+
+function getMinMax(arr: number[]) {
+	let minmax = new Pair();
+	
+	function doRecursion(arr: number[], low: number, high: number) {
+		let mmLeft = new Pair();
+		let mmRight = new Pair();
+		let mid;
+
+		// If there is only one element: 그 한 요소를 최대값과 최소값으로 삼아 반환.
+		if (low === high) {
+			minmax.max = arr[low];
+			minmax.min = arr[low];
+			return minmax;
+		}
+
+		/* If there are two elements: 둘 중 더 큰 쪽을 최대값, 더 작은 쪽을 최소값으로 삼아 반환. */
+		if (high === low + 1) {
+			if (arr[low] > arr[high]) {
+				minmax.max = arr[low];
+				minmax.min = arr[high];
+			} else {
+				minmax.max = arr[high];
+				minmax.min = arr[low];
+			}
+			return minmax;
+		}
+
+		/* If there are more than 2 elements:  반절로 나눈 구간 각각에서 최대, 최소값을 찾는다. */
+		mid = Math.floor((low + high) / 2);
+		mmLeft = doRecursion(arr, low, mid);
+		mmRight = doRecursion(arr, mid + 1, high);
+
+		// 그렇게 얻은 양 구간의 최대값과 최소값을 각각 비교해서 지금 단계의 전체 구간의 최대, 최소값을 얻는다: 
+		// compare minimums of two parts 
+		if (mmLeft.min < mmRight.min) {
+			minmax.min = mmLeft.min;
+		} else {
+			minmax.min = mmRight.min;
+		}
+
+		// compare maximums of two parts
+		if (mmLeft.max > mmRight.max) {
+			minmax.max = mmLeft.max;
+		} else {
+			minmax.max = mmRight.max;
+		}
+
+		return minmax;
+	}
+
+	return doRecursion(arr, 0, arr.length - 1);
+}
+
+// Refactored version(최대값만 찾도록 수정한 풀이):
+function getMax(arr: number[]): number {
+	function getMaxDC(low: number, high: number): number {
+		// 탈출 조건: 배열에 요소가 하나뿐인 경우, 그 요소를 반환한다.  
+		if (low === high)
+			return arr[low];
+		// 배열에 두 개 이상의 요소가 있는 경우: 
+		else {
+			// 두 부분 배열로 나눠서 각각의 최대값을 찾고,
+			const mid = Math.floor((low + high) / 2);
+			const leftMax = getMaxDC(low, mid);
+			const rightMax = getMaxDC(mid + 1, high);
+
+			// 그 둘을 비교하여 전체 배열의 최대값을 정하고 반환한다.
+			return Math.max(leftMax, rightMax);
+		}
+	}
+
+	return getMaxDC(0, arr.length - 1);
+}

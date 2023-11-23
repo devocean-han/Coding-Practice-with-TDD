@@ -61,3 +61,34 @@ function longestPalindrome(s: string): string {
 
     return maxPal;
 };
+
+// 위의 풀이의 변형: 보조 함수를 평면적으로 풀어 쓴 방법
+function longestPalindrome2(s: string): string {
+    let maxPal = '';
+
+    for (let i = 0; i < s.length; i++) {
+        let left = i;
+        let right = i;
+
+        while (left >= 0 && right < s.length && s[left] === s[right]) {
+            if (right - left + 1 > maxPal.length) {
+                maxPal = s.slice(left, right + 1);
+            }
+            left -= 1;
+            right += 1;
+        }
+
+        left = i;
+        right = i + 1;
+
+        while (left >= 0 && right < s.length && s[left] === s[right]) {
+            if (right - left + 1 > maxPal.length) {
+                maxPal = s.slice(left, right + 1);
+            }
+            left -= 1;
+            right += 1;
+        }
+    }
+
+    return maxPal;
+}

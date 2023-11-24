@@ -204,6 +204,42 @@ function numIslands(grid: string[][]): number {
 	return count;
 };
 
+// 위의 풀이에서 dp를 따로 만들지 않고 grid에 직접 '탐색한 좌표'를 표시하는 방법: DFS 방식
+function numIslands3(grid: string[][]): number {
+	let count = 0;
+
+	for (let row = 0; row < grid.length; row++) {
+		for (let col = 0; col < grid[0].length; col++) {
+			if (grid[row][col] === '1') {
+				markIslandDfs(row, col);
+				count += 1;
+			}
+		}
+	}
+
+	function markIslandDfs(row: number, col: number) {
+		// Base case:
+		// 1) if current coordinates are outside the grid border.
+		if (row < 0 || row >= grid.length ||
+			col < 0 || col >= grid[0].length)
+			return;
+		// 2) if current coordinates are 'water' or marked (as '#').
+		if (grid[row][col] !== '1') {
+			return;
+		}
+
+		// if current coordinates are 'land': mark current coordinates
+		// and check neighboring coordinates clockwise starting upper grid.
+		grid[row][col] = '#';
+		markIslandDfs(row - 1, col); // up
+		markIslandDfs(row, col + 1); // right
+		markIslandDfs(row + 1, col); // down
+		markIslandDfs(row, col - 1); // left
+	}
+
+	return count;
+}
+
 export default {
-	solution: numIslands,
+	solution: numIslands3,
 }

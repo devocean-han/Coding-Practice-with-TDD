@@ -82,46 +82,296 @@
 // '우,하' 경계선: row=m-1 혹은 col=n-1에 도달할 수 있는가
 // 특별 경계선: [0,n-1]과 [m-1,0]에는 한 칸에만 도달해도 태평양, 대서양 모두에 흐름 가능
 
-// 각 cell마다 DFS 진행, '상,좌' 경계선과 '우,하' 경계선에 닿으면 true를 리턴함으로써 해당 cell을 result에 넣어야 함을 나타내도록 한다:
-function pacificAtlantic(heights: number[][]): number[][] {
+// (성공) DFS 풀이: 
+// 각 cell마다 DFS 진행, '상,좌' 경계선과 '우,하' 경계선에 닿으면 true를 리턴함으로써 해당 cell을 result에 넣어야 함을 나타내도록 한다.
+function pacificAtlantic1(heights: number[][]): number[][] {
 	const result: number[][] = [];
-
+	let dp: string[][];
+			
 	for (let row = 0; row < heights.length; row++) {
 		for (let col = 0; col < heights[0].length; col++) {
-			let flowBoth = checkFlow(row, col);
+			// 지나간 경로 체크는 각 cell마다 새롭게 백지로 시작해야 함
+			dp = [...Array(heights.length)].map((row) => Array(heights[0].length));
+			let flowBoth = checkFlow(row, col, {});
 			if (flowBoth)
 				result.push([row, col]);
+			// console.table(dp);
+			// console.log(result);
 		}
 	}
 
-	function checkFlow(row: number, col: number): boolean {
-		// Base case: 
-		if ((row === 0 || col === 0) &&
-			(row === heights.length - 1 || col === heights[0].length - 1)) {
+	function checkFlow(row: number, col: number, eachOcean: any): boolean {
+		dp[row][col] = '#';
+		// 1) Pacific에(만) 닿은 경우:
+		if (row === 0 || col === 0) {
+			// 'pacific'을 true로 체크해둔 eachOcean을 다음 칸 탐색에 넘김
+			eachOcean.pacific = true;
+		}
+		// 2) Atlantic에(만) 닿은 경우: 
+		if(row === heights.length - 1 || col === heights[0].length - 1) {
+			// 'atlantic'을 true로 체크해둔 eachOcean을 다음 칸 탐색에 넘김
+			eachOcean.atlantic = true;
+		}	
+		// Base case:
+		// 양측 모두에 닿은 경우에만 true 리턴
+		if (eachOcean.pacific && eachOcean.atlantic) {
 			return true;
 		}
-		
-		// check neighboring cells: 
-		// heights[row][col] = 
-		// up
-		if (heights[row - 1]?.[col] <= heights[row][col])
-			checkFlow(row - 1, col);
-		// right
-		if (heights[row][col + 1] <= heights[row][col])
-			checkFlow(row, col + 1);
-		// down
-		if (heights[row + 1]?.[col] <= heights[row][col])
-			checkFlow(row + 1, col);
-		// left
-		if (heights[row][col - 1] <= heights[row][col])
-			checkFlow(row, col - 1);
 
+		// 다음 칸 탐색 진행: 
+		// 양쪽 바다 중 한 곳에만 닿았거나, 아무 데도 닿지 못한 상태일 때
+		// check neighboring cells: 
+		// up
+		if (dp[row - 1][col] === undefined &&
+			heights[row - 1]?.[col] <= heights[row][col]) {
+			if (checkFlow(row - 1, col, eachOcean))
+				return true;
+		}
+		// right
+		if (dp[row][col + 1] === undefined &&
+			heights[row][col + 1] <= heights[row][col])
+			if (checkFlow(row, col + 1, eachOcean))
+				return true;
+		// down
+		if (dp[row + 1]?.[col] === undefined &&
+			heights[row + 1]?.[col] <= heights[row][col])
+			if (checkFlow(row + 1, col, eachOcean))
+				return true;
+		// left
+		if (dp[row][col - 1] === undefined &&
+			heights[row][col - 1] <= heights[row][col])
+			if (checkFlow(row, col - 1, eachOcean))
+				return true;
+
+		// 1. 아예 위로 진행을 안 할 수도 있고
+		// 2. 했는데 사방이 막혔을 수도 있고
+		// 3. 바다를 만나서 atlantic=true가 되어 다음 칸으로 진행됐을 수 있고
+		// 4. 양쪽 다 true라서 true가 리턴됐을 수 있다.
+		// 		=> true가 명시적으로 리턴된 경우라면 호출한 부모함수도 곧바로 true를 리턴해주도록 해야 한다.
+		// 			* 즉, 4방위 중 한 번이라도 true가 등장하면 그 부모의 부모의 부모들도 모두 즉시 true를 리턴하도록 세팅해준다.
+		
 		return false;
 	}
 
 	return result;
 };
 
+// (성공) 위의 풀이를 더 깔끔히 리팩토링한 버전: 
+function pacificAtlantic2(heights: number[][]): number[][] {
+	const result: number[][] = []; 
+	const directions: number[][] = [[-1, 0], [0, 1], [1, 0], [0, -1]]; // top, right, down, left
+	let dp: string[][];  // 'visited cells' map
+			
+	for (let row = 0; row < heights.length; row++) {
+		for (let col = 0; col < heights[0].length; col++) {
+            // 'visited cells' map must be reset at each start cell
+			dp = [...Array(heights.length)].map((row) => Array(heights[0].length));
+			if (checkFlow(row, col, {}))
+                result.push([row, col]);
+		}
+	}
+
+	function checkFlow(row: number, col: number, reachOcean: any) {
+        // Mark current cell as 'visited'
+		dp[row][col] = '#';
+        
+        // If current cell is pacific or atlantic shore, 
+        // Mark the ocean as 'reached'
+		if (row === 0 || col === 0) {
+			reachOcean.pacific = true;
+		}
+		if(row === heights.length - 1 || col === heights[0].length - 1) {
+			reachOcean.atlantic = true;
+		}	
+		// Base case:
+        // Return true if both oceans are marked as 'reached'
+		if (reachOcean.pacific && reachOcean.atlantic) {
+			return true;
+		}
+
+		/* Check neighboring cells only if it is...
+            1) not visited yet
+            2) not higher than current cell
+         and return true right away when at some point 
+         both oceans are marked 'reached'
+        */
+		for (let [dx, dy] of directions) {
+			let newRow = row + dx;
+			let newCol = col + dy;
+			if (dp[newRow]?.[newCol] === undefined &&
+				heights[newRow]?.[newCol] <= heights[row][col]) {
+				if (checkFlow(newRow, newCol, reachOcean))
+					return true;
+			}
+		}
+		
+		return false;
+	}
+
+	return result;
+};
+
+// (성공) BFS 풀이:
+// 각 셀에서 시작하는 대신, 태평양과 대서양의 경계(해안선)에서 시작하여 높은 고도로 이동하는 방식. 각 셀을 한 번만 방문하므로 시간 복잡도가 향상된다.
+// (더 자세한 설명: 위에서 아래로 흐를 때는 출발점 a와 b가 흐를 수 있는 길이 겹칠 수 있고 그 모든 길을 끝까지 쫓아가봐야 한다. 그러나 아래에서 위로 이어지는 길을 찾아 마크하면 같은 지점을 중복 탐색하지 않을 수 있다. 즉, 이차원 배열에서 목표 지점에 닿고자 할 때 목표 지점부터 거꾸로 탐색해 나가면 중복을 제거할 수 있다.)
+function pacificAtlantic3(heights: number[][]): number[][] {
+	const m = heights.length;
+	const n = heights[0].length;
+	const directions = [[-1, 0], [0, 1], [1, 0], [0, -1]];
+
+	// BFS 함수: 큐에 있는 모든 cell을 방문하고,
+	// 각 cell에서 가능한 모든 방향으로 이동한다.
+	// => 이를 통해 '방문 지도(dp)'의 해안가에서 시작해 오르막만으로 이어질 수 있는 모든 길(cell)에 '방문함' 표시를 하게 됨.
+	function isAscendingBfs(queue: number[][], dp: boolean[][]) {
+		while (queue.length) {
+			// 큐에 cell(좌표)이 남아있는 동안 제일 앞선(왼쪽) cell을 뽑아서
+			let [x, y] = queue.shift();
+
+			// 상하좌우 cell 중 방문이 가능한 방향이란:
+			// (1) 유효하고(섬 내부이고)
+			// (2) 아직 방문하지 않았으며
+			// (3) 현재 위치보다 낮지 않은 경우에만(해안가에서 시작하여 더 높은 곳으로 찾아가기).
+			for (let [dx, dy] of directions) {
+				let nx = x + dx;
+				let ny = y + dy;
+				if (nx < 0 || nx >= m || ny < 0 || ny >= n ||
+					dp[nx][ny] || heights[nx][ny] < heights[x][y]) {
+					continue;
+				}
+				// 목표 cell 방문하기: 
+				dp[nx][ny] = true; // 목표 cell을 '방문함' 표기
+				queue.push([nx, ny]); // 목표 cell을 방문할 예정이므로 큐에 넣음
+			}
+		}
+	}
+
+	// 태평양과 대서양의 해안가에서 시작하는 오르막 탐색(BFS) 
+	// 을 위한 queue 및 dp 초기화
+	const pQueue: number[][] = [];
+	const aQueue: number[][] = [];
+	const pAscendingFlowMap: boolean[][] = Array.from({ length: m }, () => new Array(n).fill(false));
+	const aAscendingFlowMap: boolean[][] = Array.from({ length: m }, () => new Array(n).fill(false));
+
+	// 각 row마다, 왼쪽 끝과 오른쪽 끝 cell을 각각 queue와 dp에 넣는다.
+	for (let i = 0; i < m; i++) {
+		pQueue.push([i, 0]);
+		aQueue.push([i, n - 1]);
+		pAscendingFlowMap[i][0] = true;
+		aAscendingFlowMap[i][n - 1] = true;
+	}
+	// 각 col마다, 위 끝과 아래 끝 cell을 각각 queue에 넣고 dp에 '방문함' 표시를 한다.
+	for (let i = 0; i < n; i++) {
+		pQueue.push([0, i]);
+		aQueue.push([m - 1, i]);
+		pAscendingFlowMap[0][i] = true;
+		aAscendingFlowMap[m - 1][i] = true;
+	}
+	// => [0,0]과 [m-1,n-1] 지점은 두 번 중복해서 같은 queue에 담기지만, 그래도 상관 없다. 어차피 이후로 queue에 추가할 때는 '다음 cell'을 검사하고 추가하는 것이므로. 즉, 한 번 사방이 탐색된 cell에 대해서는 추가적인 검사가 진행되지 않는다. 
+
+	// BFS 실행:
+	// flow1에는 태평양 해안선에서 시작해 오르막으로 이어질 수 있는 모든 cell 좌표가 true로 표기된다. flow2도 대서양에서 시작해 마찬가지.
+	isAscendingBfs(pQueue, pAscendingFlowMap);
+	isAscendingBfs(aQueue, aAscendingFlowMap);
+	
+	// 두 바다 모두에서 이어질 수 있는 cell을 찾아
+	// result 배열에 그 좌표를 넣어줌.
+	const result: number[][] = [];
+	for (let row = 0; row < m; row++) {
+		for (let col = 0; col < n; col++) {
+			if (pAscendingFlowMap[row][col] && aAscendingFlowMap[row][col]) {
+				result.push([row, col]);
+			}
+		}
+	}
+
+	return result;
+}
+
+// (성공) 그렇다면 '목표->시작점'으로 거슬러 탐색하는 걸 BFS가 아닌 DFS로 할 수 있을까? : 스택을 이용한 방법:
+function pacificAtlantic4(heights: number[][]): number[][] {
+	const m = heights.length;
+	const n = heights[0].length;
+	const directions: number[][] = [[-1, 0], [0, 1], [1, 0], [0, -1]];
+
+	function isAscendingDfs(stack: number[][], dp: boolean[][]) {
+		while (stack.length) {
+			const [x, y] = stack.pop();
+			for (let [dx, dy] of directions) {
+				const [nx, ny] = [x + dx, y + dy];
+				// 사방의 cell 중 유효하지 않은 cell은 거르고 탐색
+				if (nx < 0 || nx >= m || ny < 0 || ny >= n ||
+					dp[nx][ny] || heights[nx][ny] < heights[x][y]) {
+					continue;
+				}
+				
+				dp[nx][ny] = true;
+				stack.push([nx, ny]);
+			}
+		}
+	}
+
+	// 스택 둘과 dp 둘을 초기화
+	const pStack: number[][] = [];
+	const aStack: number[][] = [];
+	const pAscendingFlowMap: boolean[][] = Array.from({ length: m }, () => new Array(n));
+	const aAscendingFlowMap: boolean[][] = Array.from({ length: m }, () => new Array(n));
+
+	// 왼쪽과 오른쪽 가장자리 cell들을 스택과 dp에 추가
+	for (let i = 0; i < m; i++) {
+		pStack.push([i, 0]);
+		aStack.push([i, n - 1]);
+		pAscendingFlowMap[i][0] = true;
+		aAscendingFlowMap[i][n-1] = true;
+	}
+	for (let i = 0; i < n; i++) {
+		pStack.push([0, i]);
+		aStack.push([m - 1, i]);
+		pAscendingFlowMap[0][i] = true;
+		aAscendingFlowMap[m-1][i] = true;
+	}
+
+	// DFS 수행
+	isAscendingDfs(pStack, pAscendingFlowMap);
+	isAscendingDfs(aStack, aAscendingFlowMap);
+
+	// 전체 cell에 대해 pAscen.와 aAscend 모두에 해당하는 지점을 찾아 그 좌표를 result에 넣기
+	const result: number[][] = [];
+	for (let row = 0; row < m; row++) {
+		for (let col = 0; col < n; col++) {
+			if (pAscendingFlowMap[row][col] && aAscendingFlowMap[row][col]) {
+				result.push([row, col]);
+			}
+		}
+	}
+
+	return result;
+}
+
+
+// 그렇다면, low->high로 재귀 DFS도...?
+
+
 export default {
 	solution: pacificAtlantic,
 }
+
+/*	함수 선언과 함수 표현식
+const bfs = (queue, flow) => {}와 function bfs(queue, flow) {} 두 선언 방식은 JavaScript에서 함수를 정의하는 두 가지 주요 방법입니다. 이 두 방식의 주요 차이점과 장단점은 다음과 같습니다:
+
+함수 선언(function declaration): function bfs(queue, flow) {}
+
+장점:
+호이스팅: 함수 선언은 스크립트가 로드될 때 메모리에 로드되므로, 선언 전에 호출할 수 있습니다.
+명확성: 함수 이름이 명시되어 있어서 디버깅 시에 스택 추적이 더 쉽습니다.
+단점:
+호이스팅: 함수가 자동으로 상단으로 이동하므로, 코드의 흐름을 이해하기 어려울 수 있습니다.
+함수 표현식(function expression): const bfs = (queue, flow) => {}
+
+장점:
+유연성: 함수 표현식은 변수에 할당되므로, 다른 함수의 인자로 전달하거나 객체의 메서드로 사용할 수 있습니다.
+this 바인딩: 화살표 함수는 자신만의 this를 가지지 않습니다. 대신, 화살표 함수는 자신을 둘러싼 코드의 this를 상속받습니다. 이는 특정 컨텍스트를 유지해야 하는 이벤트 핸들러나 콜백 함수에서 유용합니다.
+단점:
+호이스팅: 함수 표현식은 호이스팅되지 않으므로, 선언 전에 호출할 수 없습니다.
+익명성: 함수 표현식은 종종 익명으로 사용되므로, 디버깅 시에 스택 추적이 어려울 수 있습니다. 하지만, const bfs = function bfs(queue, flow) {}와 같이 명명된 함수 표현식을 사용하여 이 문제를 해결할 수 있습니다.
+
+*/

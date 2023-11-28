@@ -348,11 +348,141 @@ function pacificAtlantic4(heights: number[][]): number[][] {
 }
 
 
-// 그렇다면, low->high로 재귀 DFS도...?
+// (성공) 그렇다면, low->high로 재귀 DFS도...?
+function pacificAtlantic5(heights: number[][]): number[][] {
+	const m = heights.length;		// row(x)의 길이 
+	const n = heights[0].length;	// col(y)의 길이 
+	const result: number[][] = []; 	
+	const directions: number[][] = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 
+	// heights와 똑같은 크기의 빈 m x n 지도를 만들고
+	const pAscendingFlowMap: string[][] = Array.from({ length: m }, () => new Array(n));
+	const aAscendingFlowMap: string[][] = Array.from({ length: m }, () => new Array(n));
+	// 태평양과 대서양 해안가 초기 지점을 각각 하나씩 마크한 후
+	pAscendingFlowMap[0][0] = '#';
+	aAscendingFlowMap[m - 1][n - 1] = '#';
+	// 그 초기 지점부터 재귀적으로 DFS를 수행, 두 지도는 각각
+	// 태평양과 대서양 해안가에서부터 '오르막'으로만 가 닿을 수
+	// 있는 길(cell들)을 '#'으로 표시하게 된다.
+	checkAscending(0, 0, pAscendingFlowMap, true);
+	checkAscending(m - 1, n - 1, aAscendingFlowMap, false);
+	console.table(pAscendingFlowMap);
+	console.table(aAscendingFlowMap);
+	
+	// 주어진 지도 heights 중 태평양과 대서양 모두와 
+	// '오르막'으로 이어진 cell들이 바로 양 바다에 모두 
+	// 흘러들어갈 수 있는 강수 지점이 되므로 result에 넣는다. 
+	for (let row = 0; row < m; row++) {
+		for (let col = 0; col < n; col++) {
+			if (pAscendingFlowMap[row][col] === '#' &&
+				aAscendingFlowMap[row][col] === '#') {
+				result.push([row, col]);
+			}
+		}
+	}
+	console.log(result);
+
+	function checkAscending(row: number, col: number, dp: string[][], isPacific: boolean) {
+		// 해안가를 stack에 담아두지 않고 어떻게 전부 살피지
+		// 해안가이거나, 현재 고도보다 더 높아지는 방향이거나 하면 '마크'하기 => 이렇게 하면 '현재보다 더 낮아지는 cell이라서 이번엔 지나쳐도, 다음에 다른 해안가에서 시작해서 가능한 cell'이면 마크가 된다. 
+		for (let [dx, dy] of directions) {
+			const [nx, ny] = [row + dx, col + dy];
+			// 일단 nx, ny가 유효범위를 벗어나면 패스
+			if (nx < 0 || nx >= m || ny < 0 || ny >= n || dp[nx][ny])
+				continue;
+			
+			// pacific이면, 위,왼 해안가이거나 더 높아지는 방향을 마크
+			if (isPacific) {
+				if (nx === 0 || ny === 0 ||
+					heights[nx][ny] >= heights[row][col]) {
+					dp[nx][ny] = '#';
+					checkAscending(nx, ny, dp, isPacific);
+				}
+			}
+			// atlantic이면, 우,아래 해안가이거나 더 높아지는 방향을 마크
+			if (!isPacific) {
+				if (nx === m - 1 || ny === n - 1 ||
+					heights[nx][ny] >= heights[row][col]) {
+					dp[nx][ny] = '#';
+					checkAscending(nx, ny, dp, isPacific);
+				}
+			}
+
+			// // 두 if 조건을 합치기:
+			// if ((isPacific && (nx === 0 || ny === 0)) ||
+			// 	!isPacific && (nx === m - 1 || ny === n - 1) ||
+			// 	heights[nx][ny] >= heights[row][col]) {
+			// 	dp[nx][ny] = '#';
+			// 	checkAscending(nx, ny, dp, isPacific);
+			// }
+		} 
+	}
+
+	return result;
+}
+
+// 위의 5번 풀이를 리팩토링: 내부 재귀함수의 매개변수를 줄임
+function pacificAtlantic6(heights: number[][]): number[][] {
+	const m = heights.length;		// row(x)의 길이 
+	const n = heights[0].length;	// col(y)의 길이 
+	const result: number[][] = []; 	
+	const directions: number[][] = [[-1, 0], [0, 1], [1, 0], [0, -1]];
+
+	// heights와 똑같은 크기의 빈 m x n 지도를 만들고
+	const pAscendingFlowMap: string[][] = Array.from({ length: m }, () => new Array(n));
+	const aAscendingFlowMap: string[][] = Array.from({ length: m }, () => new Array(n));
+	// 태평양과 대서양 해안가 초기 지점을 각각 하나씩 마크한 후
+	pAscendingFlowMap[0][0] = '#';
+	aAscendingFlowMap[m - 1][n - 1] = '#';
+	// 그 초기 지점부터 재귀적으로 DFS를 수행, 두 지도는 각각
+	// 태평양과 대서양 해안가에서부터 '오르막'으로만 가 닿을 수
+	// 있는 길(cell들)을 '#'으로 표시하게 된다.
+	checkAscending(0, 0, pAscendingFlowMap);
+	checkAscending(m - 1, n - 1, aAscendingFlowMap);
+	console.table(pAscendingFlowMap);
+	console.table(aAscendingFlowMap);
+	
+	// 주어진 지도 heights 중 태평양과 대서양 모두와 
+	// '오르막'으로 이어진 cell들이 바로 양 바다에 모두 
+	// 흘러들어갈 수 있는 강수 지점이 되므로 result에 넣는다. 
+	for (let row = 0; row < m; row++) {
+		for (let col = 0; col < n; col++) {
+			if (pAscendingFlowMap[row][col] === '#' &&
+				aAscendingFlowMap[row][col] === '#') {
+				result.push([row, col]);
+			}
+		}
+	}
+	console.log(result);
+
+	function checkAscending(row: number, col: number, dp: string[][]) {
+		// 해안가를 stack에 담아두지 않고 어떻게 전부 살피지
+		// 해안가이거나, 현재 고도보다 더 높아지는 방향이거나 하면 '마크'하기 => 이렇게 하면 '현재보다 더 낮아지는 cell이라서 이번엔 지나쳐도, 다음에 다른 해안가에서 시작해서 가능한 cell'이면 마크가 된다. 
+		for (let [dx, dy] of directions) {
+			const [nx, ny] = [row + dx, col + dy];
+			// 일단 nx, ny가 유효범위를 벗어나면 패스
+			if (nx < 0 || nx >= m || ny < 0 || ny >= n || dp[nx][ny])
+				continue;
+			
+			// pacific이면, 위,왼 해안가이거나 더 높아지는 방향을 마크
+			// atlantic이면, 우,아래 해안가이거나 더 높아지는 방향을 마크
+			
+			// 두 if 조건을 합치기:
+			if ((dp === pAscendingFlowMap && (nx === 0 || ny === 0)) ||
+				dp === aAscendingFlowMap && (nx === m - 1 || ny === n - 1) ||
+				heights[nx][ny] >= heights[row][col]) {
+				dp[nx][ny] = '#';
+				checkAscending(nx, ny, dp);
+			}
+		} 
+	}
+
+	return result;
+}
+// => 일치 연산자 '==='는 원시형 변수를 비교할 때는 값과 타입을 모두 일치시키고, 참조형 변수를 비교할 때는 동일한 객체를 참조하고 있는지를 확인한다. 
 
 export default {
-	solution: pacificAtlantic,
+	solution: pacificAtlantic6,
 }
 
 /*	함수 선언과 함수 표현식

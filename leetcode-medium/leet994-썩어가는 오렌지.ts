@@ -143,8 +143,8 @@ function orangesRotting(grid: number[][]): number {
 };
 
 //^ 위의 한 줄 grid인 경우의 로직을 발전시켜 정리한 풀이:
-//* => 1 혹은 연속된 1의 앞뒤로 2와 0이 어떻게 붙느냐가 핵심이다. 
-//* => 2가 가장 멀리 떨어진 1까지의 거리가 곧 필요한 최소 시간이 된다. 
+//* => 1 혹은 연속된 1의 앞뒤로 2와 0이 어떻게 붙느냐가 핵심이다.
+//* => 2가 가장 멀리 떨어진 1까지의 거리가 곧 필요한 최소 시간이 된다.
 /*
  ^ 2와 가장 멀리 떨어진 1의 거리를 계산하기: 
  * 순회하다가 1을 만나게 되었을 때(1의 시작): 
@@ -162,10 +162,12 @@ function orangesRotting(grid: number[][]): number {
  * 위의 경우를 제외한 다른 숫자 조합은 무시하면 된다. 
  * '계산'을 수행할 때마다 maxDistance에 최대 거리를 업데이트하여 최종 반환하도록 한다. 
  */
+
 function orangesRotting2(grid: number[][]): number {
+	console.table(grid);
 	const line = grid[0];
-	let startP: number;
-	let endP: number;
+	let startP: number | null;
+	let endP: number | null;
 	let maxDistance: number = 0;
 
 	// 첫 번째 요소 앞에, 0번째 요소로 0이 자리하는 것과 같이 취급한다:
@@ -173,46 +175,206 @@ function orangesRotting2(grid: number[][]): number {
 	line[-1] = 0; // 좀 이상한가...
 	line.push(0);
 
-	// // 첫 번째 요소가 1인 경우: 0 -> 1인 경우와 같음
-	// // 나머지(0이나 2)의 경우도: 0 -> 0과 0 -> 2의 경우(=무대응)과 같다.
-	// if (line[0] === 1) {
-	// 	startP = 0;
-	// 	endP = null;
-	// }
+	// 첫 번째 요소가 1인 경우: 0 -> 1인 경우와 같음
+	// 나머지(0이나 2)의 경우도: 0 -> 0과 0 -> 2의 경우(=무대응)과 같다.
 
-	// // 두 번째 요소부터 검사 시작
 	// 첫 번째 요소부터 검사 시작
 	for (let i = 0; i < line.length; i++) {
+		// 순회하다가 1을 만나게 되었을 때(1의 시작): 
 		if (line[i] === 1) {
+			// 1) 0 -> 1: startP를 현재 i로, endP는 null로 지정한다.
 			if (line[i - 1] === 0) {
 				startP = i;
 				endP = null;
-			} else if (line[i - 1] === 2) {
+			}
+			// 2) 2 -> 1: startP와 endP를 현재 i로 지정한다.
+			else if (line[i - 1] === 2) {
 				startP = endP = i;
 			}
 		}
-		else if (line[i - 1] === 1 && line[i] === 0) {
-			startP = null;
-			if (endP === null) return -1;
-			else maxDistance = Math.max(maxDistance, i - endP);
-		}
-		else if (line[i - 1] === 1 && line[i] === 2) {
-			if (endP === null) Math.max(maxDistance, i - startP);
-			else maxDistance = Math.max(maxDistance, Math.ceil((i - startP) / 2));
+
+		// 순회하다가 1 다음으로 0과 2를 만나게 되었을 때(1의 끝):
+		else if (line[i - 1] === 1) {
+			// 1) 1 -> 0: startP를 null로 지정하고 계산 돌입
+			//		- endP도 null이면 1이 고립됨. -1 반환하기.
+			// 		- endP가 null이 아니면 "endP ~ 0" 거리를 계산하기.
+			if (line[i] === 0) {
+				startP = null;
+				if (endP === null) return -1;
+				else maxDistance = Math.max(maxDistance, i - endP);
+			}
+			// 2) 1 -> 2: startP를 놔두고 계산 돌입
+			// 		- endP가 null이면 "startP ~ 2" 거리를 계산하기.
+			// 		- endP가 null이 아니면 "startP ~ 2" 거리를 2로 나누고 올림.
+			else if (line[i] === 2) {
+				if (endP === null)
+					maxDistance = Math.max(maxDistance, i - startP);
+				else
+					maxDistance = Math.max(maxDistance, Math.ceil((i - startP) / 2));
+			}
 		}
 	}
 
-	// // 다 끝났는데 [0,1,1]이나 [2,1,1]처럼 끝이 1로 끝나버린 경우:
-	// // 끝이 1 -> 0인 것과 같이 취급해주면 된다.
-	// if (line[line.length - 1] === 1) {
-	// 	startP = null;
-	// 	if (endP === null) return -1;
-	// 	else maxDistance = Math.max(maxDistance, line.length - endP);
-	// }
+	// 다 끝났는데 [0,1,1]이나 [2,1,1]처럼 끝이 1로 끝나버린 경우:
+	// 끝이 1 -> 0인 것과 같이 취급해주면 된다.
 
 	return maxDistance;
 }
 
+// 이제 줄이 여럿인 경우를 생각해야 한다...
+// 2차원에서도 똑같다. 2와 가장 멀리 떨어진 1까지의 거리를 구하면 된다.
+// 오른쪽으로만 순회하던 것을, 오른쪽과 아래쪽 모두를(?) 살펴야 한다...
+// 		어떤 2에서 오아로만 가던 것보다, 다른 2에서 왼위로 오는 게 더 빠른 경우도 있을까? 그래서 반드시 왼위를 계산해야하는 걸까?
+/* 	=> 있다. 이런 경우: 첫 2에서 [0,3]에 도달하는 것보다 끝 2에서 도달하는 게 더 빠르다. 결국 사방을 다 살펴야 한다...
+    ┌─────────┬───┬───┬───┬───┐
+    │ (index) │ 0 │ 1 │ 2 │ 3 │
+    ├─────────┼───┼───┼───┼───┤
+    │    0    │ 2 │ 1 │ 1 │ 1 │
+    │    1    │ 1 │ 1 │ 0 │ 1 │
+    │    2    │ 0 │ 1 │ 1 │ 2 │
+    └─────────┴───┴───┴───┴───┘
+ */
+// 일단 정석: 2와 가장 멀리 떨어진 1을 모든 cell마다 살핀다.
+// 그 후, 거꾸로: 뭔가 거꾸로 생각해본다.
+
+// 한 줄일 때와 똑같이, 1을 만났을 때 상하좌우가 0이나 2이냐가 중요하다.
+// 결국 똑같은 논리를 사방으로 뻗어나가는 재귀 함수로 구현해보자.
+/*
+ ^ 2와 가장 멀리 떨어진 1의 거리를 계산하기: 
+ * 재귀 호출 하다가 1을 만나게 되었을 때(1의 시작): 
+ * 1) 0 -> 1: startP를 현재 i로 지정, endP는 null로 지정한다.
+ * 2) 2 -> 1: startP와 endP를 현재 i로 지정한다.
+ startP: 일단 1이 시작된 지점을 가리켜서, "1의 시작 지점 ~ 1의 끝 지점"을 계산하는 데 쓰임. 1의 시작 지점이 유의미해지는 때는 1들의 마지막에 2를 만난 경우('1112') 뿐이므로, 이후 끝에 0을 만나면('1110')
+ ) "1의 시작 지점 ~ 0" 지점까지의 거리를 계산하는 게 의미가 없으므로 null로 재할당된다. 따라서 1이 끝나는 시점에 startP가 null이 될 것인가가 결정된다. 
+ endP: 1(들)이 끝나는 지점을 가리키고, 처음에 1이 시작됐을 때 2 다음으로 시작됐었다면('2110') 이 값이 쓰이게 되지만 0 다음으로 시작됐었다면('0110') 끝점을 기록해도 거리 계산에 사용되지 않는다. 따라서 처음에 1이 시작됐을 때 endP가 null로 지정될 것인가가 결정된다. 
+
+ * 재귀 호출 하다가 1 다음으로 0과 2를 만나게 되었을 때(1의 끝):
+ * 1) 1 -> 0: startP를 null로 지정하고 계산 돌입
+ * 		- endP도 null이면 1이 고립됨. -1 반환하기.
+ * 		- endP가 null이 아니면 "endP ~ 0" 거리를 계산하기.
+ * 2) 1 -> 2: startP를 냅두고 계산 돌입
+ * 		- endP가 null이면 "startP ~ 2" 거리를 계산하기.
+ * 		- endP가 null이 아니면 "startP ~ 2" 거리를 2로 나누고 올림.
+ * 
+ * 위의 경우를 제외한 다른 숫자 조합은 무시하면 된다. 
+ * '계산'을 수행할 때마다 maxDistance에 최대 거리를 업데이트하여 최종 반환하도록 한다. 
+ */
+// (미완성)
+function orangesRotting3(grid: number[][]): number {
+	console.table(grid);
+	let maxDistance: number = 0;
+	let startP: number[] | null;
+	let endP: number[] | null;
+	const directions = [[-1, 0], [0, 1], [1, 0], [0, -1]];
+	// 보조 재귀 함수:
+	// '이전 것'과 '지금 것'을 비교해야 하므로, 스텝을 밟기 전에 걸러내는 조건을 적용하도록 한다. 
+	function augDfsFindMaxDistance(x: number, y: number) {
+		// Base case:
+
+		// Search 4 directions in "up -> right -> down -> left" order
+		for (const [dx, dy] of directions) {
+			const [nx, ny] = [x + dx, y + dy];
+
+			// grid를 벗어나는 경우 등을 제외
+			if (nx < 0 || nx >= grid.length ||
+				ny < 0 || nx >= grid[0].length
+				|| dp[nx][ny]
+			) {
+				continue;
+			}
+			
+			if (grid[nx][ny] === 1) {
+				if (grid[x][y] === 0) {
+					startP = [nx, ny];
+					endP = null;
+				}
+				else if (grid[x][y] === 2) {
+					startP = endP = [nx, ny];
+				} 
+			}
+
+			else if (grid[x][y] === 1) {
+				if (grid[nx][ny] === 0) {
+					startP = null;
+					if (endP === null) return -1;
+					// else maxDistance = Math.max(maxDistance, i - endP)
+					// startP를 기록하고 있을 게 아니라 칸을 하나 거칠때마다 1을 더해왔어야 하는 건가? 아니다. 그냥 시작점-끝점의 x,y끼리 각 차를 더해주면 거리가 된다!
+					// startP를 기록하지 않고 칸마다 1을 더하는 방식으로 해도 괜찮겠다.
+					else {
+						let distanceSoFar = Math.abs(nx - endP[0]) + Math.abs(ny - endP[1]);
+						maxDistance = Math.max(maxDistance, distanceSoFar);
+					}
+				}
+				else if (grid[nx][ny] === 2) {
+					if (endP === null) {
+						let distanceSoFar = Math.abs(nx - startP[0]) + Math.abs(ny - startP[1]);
+						maxDistance = Math.max(maxDistance, distanceSoFar);
+					}
+					else {
+						let distanceSoFar = Math.ceil((Math.abs(nx - startP[0]) + Math.abs(ny - startP[1])) / 2);
+						maxDistance = Math.max(maxDistance, distanceSoFar);
+					}
+				}
+			}
+
+			// 이 나머지는 1->1 의 경우 뿐이다:
+			// 1이 이어질 때 재귀호출!
+			augDfsFindMaxDistance(nx, ny);
+		}
+	}
+
+	// 전체 cell에 대해서 aug 호출:
+
+	return maxDistance;
+}
+
+// BFS
+function orangesRotting4(grid: number[][]): number {
+	console.table(grid);
+	const m = grid.length;
+	const n = grid[0].length;
+	let queue = [];  // [행, 열, 이자리에 도달하는데 걸린 시간]
+	let oranges = 0; // 남은 신선한 오렌지의 개수 (0이 되도록 하는 게 목적)
+	let time = 0;	 // 경과한 시간
+
+	// grid 전체를 순회하면서
+	for (let row = 0; row < m; row++) {
+		for (let col = 0; col < n; col++) {
+			// 1이면 '신선한 오렌지 개수'를 +1 카운트해주고
+			if (grid[row][col] === 1) oranges++;
+			// 2이면 BFS 탐색을 시작할 시작점으로써 queue에 넣어준다.
+			else if (grid[row][col] === 2) queue.push([row, col, 0]);
+		}
+	}
+
+	const directions = [[-1, 0], [0, 1], [1, 0], [0, -1]]; // 상,우,하,좌
+	
+	while (queue.length && oranges) {
+		// 썩은 오렌지를 하나 꺼내서 '신선한 오렌지'가 0개 남기까지 주변을 탐색
+		const [x, y, lapse] = queue.shift();
+		// 현재 칸이 신선한 오렌지면 '썩음'으로 바꾸고 '신선한 오렌지 개수'는 -1 해주며 '경과한 시간'은 현재 칸에 도달하는 데 걸린 시간인 laspe로 덮어씌운다.
+		if (grid[x][y] === 1) {
+			grid[x][y] = 2;
+			oranges--;
+			time = lapse;
+		}
+
+		// 현재 칸이 1이(었)든 2이든 상관없이 사방위를 탐색:
+		for (let [dx, dy] of directions) {
+			const [nx, ny] = [x + dx, y + dy];
+			// 다음 탐색할 칸이 grid를 벗어나는 영역이면 탐색하지 않는다.
+			if (nx < 0 || nx >= m || ny < 0 || ny >= n)
+				continue;
+			// 다음 탐색할 칸이 1(신선한 오렌지)이면 queue에 넣어준다.
+			if (grid[nx][ny] === 1) {
+				queue.push([nx, ny, lapse + 1]);
+			}
+		}
+	}
+
+	return oranges ? -1 : time;
+}
+
 export default {
-	solution: orangesRotting2,
+	solution: orangesRotting4,
 }

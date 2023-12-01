@@ -495,6 +495,7 @@ const bfs = (queue, flow) => {}와 function bfs(queue, flow) {} 두 선언 방�
 명확성: 함수 이름이 명시되어 있어서 디버깅 시에 스택 추적이 더 쉽습니다.
 단점:
 호이스팅: 함수가 자동으로 상단으로 이동하므로, 코드의 흐름을 이해하기 어려울 수 있습니다.
+
 함수 표현식(function expression): const bfs = (queue, flow) => {}
 
 장점:

@@ -43,7 +43,7 @@ const makeRanges = (bombs: number[][]) => {
 			}
 		}
 	}
-	console.table(grid);
+	// console.table(grid);
 	return grid;
 }
 const showRanges = (bombs: number[][]) => {

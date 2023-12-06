@@ -259,7 +259,8 @@ function maximumDetonation3(bombs: number[][]): number {
 		visited[bomb] = true;
 		let count = 1;
 		for (let nextBomb of bombChain[bomb]) {
-			// 아직 방문하지 않았으면 그 폭탄이 
+			// 아직 방문하지 않았으면 그 폭탄을 1로 카운트하고
+			// '연쇄'되는 폭탄들을 각각 더하여 최종 합을 반환
 			if (!visited[nextBomb]) {
 				count += findMaxVisitedDfs(nextBomb);
 			}
@@ -268,6 +269,9 @@ function maximumDetonation3(bombs: number[][]): number {
 		return count;
 	}
 
+	// 각 폭탄을 시작점으로 루트를 탐색할 때마다
+	// visited를 전부 false로 초기화하여 DFS 탐색을 
+	// 진행하고 최대 폭발 수 업데이트
 	for (let i = 0; i < n; i++) {
 		visited.fill(false);
 		maxDetonation = Math.max(maxDetonation, findMaxVisitedDfs(i));
@@ -304,26 +308,30 @@ function maximumDetonation4(bombs: number[][]): number {
     let maxDetonation = 0;
     let visited: boolean[] = Array(n).fill(false);
 
+	// bomb을 시작점으로 하여 연쇄 폭발이 일어나는 수를 반환하는 함수
     function bfs(bomb: number): number {
         let queue = [bomb];
         visited[bomb] = true;
-        let size = 1;
+        let count = 1;
 
         while (queue.length > 0) {
             let currentBomb = queue.shift();
 
-            for (let nextBomb of bombChain[currentBomb]) {
-                if (!visited[nextBomb]) {
-                    visited[nextBomb] = true;
-                    queue.push(nextBomb);
-                    size++;
+            for (let linkedBomb of bombChain[currentBomb]) {
+                if (!visited[linkedBomb]) {
+                    visited[linkedBomb] = true;
+                    queue.push(linkedBomb);
+                    count++;
                 }
             }
         }
 
-        return size;
+        return count;
     }
 
+	// bombs의 첫 폭탄부터 차례로 시작점으로 삼아 각각의 연쇄 폭발
+	// 수를 셈하고 최대 폭발 수를 업데이트. 각 폭탄을 시작점으로
+	// 루트를 탐색할 때마다 visited는 전부 false로 초기화해준다.
     for (let i = 0; i < n; i++) {
         visited.fill(false);
         maxDetonation = Math.max(maxDetonation, bfs(i));

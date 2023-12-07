@@ -165,6 +165,8 @@ function findRedundantConnection2(edges: number[][]): number[] {
 		parent[b] = b;
 	}
 	// 주어진 node의 최상위 부모 노드를 찾아 parent[node]의 값으로 저장한다
+	// = 주어진 노드의 부모 노드를 parent에서 꺼내와서 반환한다. 
+	// = 재귀적으로 주어진 노드의 최상위 부모 노드를 찾아 parent[]에 저장한다.
 	function findFarthestParent(node: number) {
 		if (parent[node] !== node) {
 			parent[node] = findFarthestParent(parent[node]);
@@ -174,17 +176,24 @@ function findRedundantConnection2(edges: number[][]): number[] {
 
 	// 2. 두 노드를 연결
 	function union(node1: number, node2: number) { 
+		// 두 노드의 최상위 부모 노드를 찾아서 같은지 다른지 비교한다.
 		let root1 = findFarthestParent(node1);
 		let root2 = findFarthestParent(node2);
 
+		// 만약 같다면, 이미 같은 집합(사이클)에 속해있다는 뜻이므로 false를 반환
 		if (root1 === root2)
 			return false;
 		
+		// 만약 다르다면, 한 쪽의 최상위 부모 노드를 다른 쪽의 최상위 부모 노드로 변경하여(node1과 node2는 연결된 사이이므로) 같은 집합(사이클)에 속하도록 해주고, true를 반환
 		parent[root1] = root2;
 		return true;
 	}
 
 	// 3. 모든 간선(edge)에 대해 union 연산을 수행
+	// => 각 집합(사이클)을 클랜, 그 최상위 부모 노드를 가주라고 한다면,
+	// 초기에는 자기 자신을 가주로 삼고 각자 클랜을 가지고 있게 된다. 최초의 union() 호출은 그런 클랜들 사이의 관계를 최초로 엮어준다. 즉, 간선 [a,b] 마다 a가 b를 가주로 삼는 클랜에 속하게 만든다. 
+	// [[1,2],[2,3],[3,4],[1,4],[1,5]] 이면 1-> 2 -> 3 -> 4 로 가주 자리를 넘겨주고 통합된 뒤, [1,4]라는, 이미 같은 클랜에 속하는 멤버끼리 만나게 된다. 
+	// => 이대로라면 사이클을 완성시키는 간선이 등장하자마자 바로 그걸 반환시켜버리게 되는데, 어쨰서지? 
 	for (let i = 0; i < edges.length; i++) {
 		const [a, b] = edges[i];
 		if (!union(a, b)) {
@@ -194,6 +203,131 @@ function findRedundantConnection2(edges: number[][]): number[] {
 
 	return [];
 } 
+
+// 위의 풀이를 더 압축한 버전: 
+function findRedundantConnection3(edges: number[][]): number[] {
+	let parent = Array.from({ length: edges.length + 1 }, (_, i) => i);
+	const find = (x: number): number => {
+		return x === parent[x] ? parent[x] : parent[x] = find(parent[x]);
+	}
+	const union = (x: number, y: number) => {
+		return parent[find(y)] = find(x);
+	}
+	for (let [a, b] of edges) {
+		if (find(a) === find(b)) return [a, b];
+		union(a, b);
+	}
+}
+
+// DFS 풀이: 
+function findRedundantConnection4(edges: number[][]): number[] {
+	let graph = new Map(); // {노드 번호: set(연결된 다른 노드 번호들)}
+	let curr: number[];
+
+	// 1. 모든 간선을 순회하며 각 노드가 연결된 '연결 정보' map을 만든다. 
+	//  (graph에 순서쌍이 추가될 때마다 간선이 실제로 '그어져 연결된다'고 보면 된다. 즉, graph에 정보가 존재하는 노드쌍만이 '연결됐다'.)
+	// 	 ex) {1: (2,4,5), 2: (1,3), 3: (2,4), 4: (1,3), 5: (1)}
+	for (const [a, b] of edges) {
+		if (dfs(a, b, new Set())) {
+			//^ 사이클이 1개만 존재하리라는 전제가 있는 이번 문제는 첫 '사이클이 완성되는 간선'을 찾자마자 바로 반환해도 된다. 
+			return [a, b];
+			// 그렇지 않고 사이클이 여러 개 예상되는 중에 삭제할 수 있는 마지막 간선을 찾으라고 했다면 다음과 같이 간선을 저장해둔다: 
+			curr = [a, b];
+		}
+		if (!graph.has(a)) graph.set(a, new Set());
+		if (!graph.has(b)) graph.set(b, new Set());
+		graph.get(a).add(b);
+		graph.get(b).add(a);
+	}
+
+	// 2. 주어진 노드1을 시작점으로 삼아 간선을 타고 갔을 때, 자기 자신으로 돌아올 수 있는 루트(사이클)인지 여부를 반환한다. 
+	// = 노드1의 이웃(의 이웃의 이웃의...) 중 노드2가 존재하는지 
+	function dfs(node1: number, node2: number, visited: Set<number>): boolean {
+		// 노드 둘을 받아서 1번 노드를 '방문함'에 넣고
+		// graph에 1번 노드가 key로 들어있지 않은 경우(=1번 노드가 한 번도 등장한 적이 없어 '연결 정보'가 없는 경우) 그대로 false를 반환하고,
+		// 1번 노드가 key로 들어 있는 경우 사이클 찾기 작업 시작: 
+		// 1번 노드와 연결된 다른 노드 목록에 2번 노드가 포함되는 경우, 사이클을 찾은 것. true를 반환한다. 
+		// 그렇지 않으면 1번 노드와 연결된 모든 이웃 노드를 순회하며 1)'방문한' 적이 없고, 2)그 이웃 노드의 이웃 노드 목록에 2번 노드가 들어 있는 경우 true를 반환한다. 
+		/* 즉, 1번 노드의 이웃 노드들의 이웃 노드들의 이웃 노드들을 계속 살피면서 2번 노드를 이웃으로 가지는지를 체크하는 것. 이 때
+		 * 1. 우선 '방문함' set에 1번 노드를 저장하고,
+		 * 2. 1번 노드와 '연결된' 노드가 하나도 없으면('연결 정보' map에 1번 노드가 아직 등록되지 않은 경우), 곧바로 false를 반환한다. 
+		 * 3. 만약 1번 노드에게 2번 노드가 직접 연결되어 있으면 곧바로 true를 반환한다. 
+		 * 4. 그렇지 않으면 이웃 노드 중 아직 방문하지 않은 노드를 다시 1번 노드로 삼고 1~3을 반복한다. 그렇게 이웃의 이웃을 탐색하던 중 한 번이라도 3에 걸려서 true가 반환되면 곧바로 모든 조상 호출도 true를 반환시킨다. 
+		 * 5. 만약 모든 노드를 '방문'하기까지 그 이웃 노드로 2번 노드를 발견하지 못했다면 마지막으로 false를 반환하도록 한다. 
+		*/
+		visited.add(node1);
+
+		if (graph.has(node1)) {
+			let neighborNodes = graph.get(node1);
+			if (neighborNodes.has(node2)) return true;
+
+			for (const node of neighborNodes) {
+				if (!visited.has(node)) {
+					if (dfs(node, node2, visited)) {
+						return true;
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	return curr;
+}
+
+// 굳이 'graph'를 만들어 간선을 차례로 '연결하는' 작업을 하지 않고도, 사실 neighborNodes map만 완성되면 이미 그래프 전체 그림을 추적할 수 있는 셈이니까 이것만으로 사이클을 추적할 수 있지 않을까.
+// 1. edges의 간선을 마지막 것부터 순회한다.
+// 2. 현재 순서의 간선 [a,b]를 대상으로, a->b를 제외하고 a가 b에 도달할 수 있는 다른 루트가 있는지 조사한다. 있다면, [a,b]를 마지막 등장으로 하는 사이클이 존재하는 것이므로 곧바로 [a,b]를 반환하면 된다.
+// 3. '없다면' = "a->b를 제외하고 a->->->b에 도달하지 못하고 모든 가능성 있는(연결된) 노드가 방문되고 끝났다".
+// a->b 만 제외하고 재귀 호출하도록 어떻게 지정할 수 있지? 
+function findRedundantConnection5(edges: number[][]): number[] {
+	const neighborNodes: { [key: number]: number[] } = {};
+	for (let [a, b] of edges) {
+		if (!neighborNodes[a]) neighborNodes[a] = [];
+		if (!neighborNodes[b]) neighborNodes[b] = [];
+		neighborNodes[a].push(b);
+		neighborNodes[b].push(a);
+	}
+
+	// [a->b] 직접 연결을 제외하고 이웃 노드 탐색하기
+	for (let i = edges.length - 1; i >= 0; i--) {
+		const [a, b] = edges[i];
+		// let is1stNeighbor = true;
+		if (aug(a, b, new Set([a]), 0)) {
+			return [a, b];
+		}
+
+		function aug(curNode: number, targetNode: number, visited: Set<number>, neighborLevel: number): boolean {
+			// visited.add(curNode);
+			console.log('a,b, visited, level: ', curNode, targetNode, visited, neighborLevel);
+
+			if (neighborLevel === 1 && curNode === targetNode) {
+				return false // ? 
+				// continue;
+			}
+			// 사이클 찾았음
+			if (curNode === targetNode) 
+				return true;
+			// 이도 저도 아니면: false를 반환해가며 재귀 반복
+			console.log('neighbor 후보: ', neighborNodes[curNode])
+			for (let node of neighborNodes[curNode]) {
+				// 아직 방문하지 않은 node만 대상으로 재귀 호출:
+				// console.log('[a,b],visited: ', node, targetNode, visited);
+				// if (visited.has(node))
+				if (!visited.has(node)) {
+					if (aug(node, targetNode, new Set([...visited, node]), ++neighborLevel))
+						return true;
+
+				}
+			}
+			console.log('후보 탈출 후, visited는 제자리로 돌아와야 함: ', visited)
+
+			return false;
+		}
+		
+	}
+}
 export default {
-	solution: findRedundantConnection2,
+	solution: findRedundantConnection5,
 }

@@ -219,7 +219,9 @@ function findRedundantConnection3(edges: number[][]): number[] {
 	}
 }
 
-// DFS 풀이: 
+// DFS 풀이:
+// Time complexity: O(n^2) <- 한 번의 dfs 호출은 최대 O(n)이고, 이를 모든 간선(n)에 대해 수행하므로.
+// Space complexity: O(n) <- 'graph' map은 최대 n개를 저장하고 'visited' set도 최대 n개를 저장하므로.
 function findRedundantConnection4(edges: number[][]): number[] {
 	let graph = new Map(); // {노드 번호: set(연결된 다른 노드 번호들)}
 	let curr: number[];
@@ -228,6 +230,7 @@ function findRedundantConnection4(edges: number[][]): number[] {
 	//  (graph에 순서쌍이 추가될 때마다 간선이 실제로 '그어져 연결된다'고 보면 된다. 즉, graph에 정보가 존재하는 노드쌍만이 '연결됐다'.)
 	// 	 ex) {1: (2,4,5), 2: (1,3), 3: (2,4), 4: (1,3), 5: (1)}
 	for (const [a, b] of edges) {
+		// 각 (원시)dfs 호출마다 최대 O(n) 시간이 들고 이를 모든 간선에 대하여 수행하므로, 최종 O(n^2)
 		if (dfs(a, b, new Set())) {
 			//^ 사이클이 1개만 존재하리라는 전제가 있는 이번 문제는 첫 '사이클이 완성되는 간선'을 찾자마자 바로 반환해도 된다. 
 			return [a, b];
@@ -261,6 +264,8 @@ function findRedundantConnection4(edges: number[][]): number[] {
 			let neighborNodes = graph.get(node1);
 			if (neighborNodes.has(node2)) return true;
 
+			// neighborNodes는 최대 n-1개, 그것을 각 노드마다 처리하므로 * n이지만 
+			// '방문한' 노드는 다시 방문하지 않으므로 한 간선에 대한 원시 dfs() 호출은 최대 O(n)이다. 
 			for (const node of neighborNodes) {
 				if (!visited.has(node)) {
 					if (dfs(node, node2, visited)) {
@@ -276,11 +281,16 @@ function findRedundantConnection4(edges: number[][]): number[] {
 	return curr;
 }
 
-// 굳이 'graph'를 만들어 간선을 차례로 '연결하는' 작업을 하지 않고도, 사실 neighborNodes map만 완성되면 이미 그래프 전체 그림을 추적할 수 있는 셈이니까 이것만으로 사이클을 추적할 수 있지 않을까.
+
+
+// (성공) 굳이 'graph'를 만들어 간선을 차례로 '연결하는' 작업을 하지 않고도, 사실 neighborNodes map만 완성되면 이미 그래프 전체 그림을 추적할 수 있는 셈이니까 이것만으로 사이클을 추적할 수 있지 않을까.
 // 1. edges의 간선을 마지막 것부터 순회한다.
 // 2. 현재 순서의 간선 [a,b]를 대상으로, a->b를 제외하고 a가 b에 도달할 수 있는 다른 루트가 있는지 조사한다. 있다면, [a,b]를 마지막 등장으로 하는 사이클이 존재하는 것이므로 곧바로 [a,b]를 반환하면 된다.
 // 3. '없다면' = "a->b를 제외하고 a->->->b에 도달하지 못하고 모든 가능성 있는(연결된) 노드가 방문되고 끝났다".
-// a->b 만 제외하고 재귀 호출하도록 어떻게 지정할 수 있지? 
+// a->b 만 제외하고 재귀 호출하도록 어떻게 지정할 수 있지?
+
+// Time complexity: O(n^2)
+// Space complexity: O(n)
 function findRedundantConnection5(edges: number[][]): number[] {
 	const neighborNodes: { [key: number]: number[] } = {};
 	for (let [a, b] of edges) {
@@ -293,41 +303,52 @@ function findRedundantConnection5(edges: number[][]): number[] {
 	// [a->b] 직접 연결을 제외하고 이웃 노드 탐색하기
 	for (let i = edges.length - 1; i >= 0; i--) {
 		const [a, b] = edges[i];
-		// let is1stNeighbor = true;
-		if (aug(a, b, new Set([a]), 0)) {
+		if (dfs(a, b, new Set([a]), 0)) {
 			return [a, b];
 		}
 
-		function aug(curNode: number, targetNode: number, visited: Set<number>, neighborLevel: number): boolean {
-			// visited.add(curNode);
-			console.log('a,b, visited, level: ', curNode, targetNode, visited, neighborLevel);
-
-			if (neighborLevel === 1 && curNode === targetNode) {
-				return false // ? 
-				// continue;
-			}
-			// 사이클 찾았음
-			if (curNode === targetNode) 
-				return true;
-			// 이도 저도 아니면: false를 반환해가며 재귀 반복
-			console.log('neighbor 후보: ', neighborNodes[curNode])
-			for (let node of neighborNodes[curNode]) {
-				// 아직 방문하지 않은 node만 대상으로 재귀 호출:
-				// console.log('[a,b],visited: ', node, targetNode, visited);
-				// if (visited.has(node))
-				if (!visited.has(node)) {
-					if (aug(node, targetNode, new Set([...visited, node]), ++neighborLevel))
-						return true;
-
-				}
-			}
-			console.log('후보 탈출 후, visited는 제자리로 돌아와야 함: ', visited)
-
-			return false;
-		}
-		
 	}
+	
+	// Time complexity: O(n)
+	// Space complexity: O(n)
+	function dfs(curNode: number, targetNode: number, visited: Set<number>, neighborLevel: number): boolean {
+		if (curNode === targetNode) {
+			// 타겟 노드 b를 만났지만 a에서 직접 연결된 경우: 
+			// 주변 이웃을 탐색하지 않고 곧바로 false를 반환시킨다
+			if (neighborLevel === 1)
+				return false;
+			// 그게 아니면, 사이클 찾았음
+			return true;
+		}
+
+		// 이도 저도 아니면: false를 반환해가며 재귀 반복
+		for (let node of neighborNodes[curNode]) {
+			// 아직 방문하지 않은 node만 대상으로 재귀 호출:
+			if (!visited.has(node)) {
+				if (dfs(node, targetNode, new Set([...visited, node]), neighborLevel + 1))
+					return true;
+			}
+			//! => 백트래킹을 하려면 재귀 호출의 인자 중에서...:
+			//! 1. Set의 경우, set.add() 자체를 넘겨줘도 하나의 set이 이미 변경된 상태로 넘어가게 됨. 따라서 요소를 하나 추가한 깊은 복사를 해서 인수로 줘야 한다.
+			//! 2. 숫자 변수의 경우, a++는 아무런 영향도 주지 못하고 ++는 의도대로 +1한 값을 넘기기는 하지만 백트래킹이 안된다. 따라서 a + 1을 인수로 넘겨줘야 한다. 
+
+			//^ 그러나 Set을 매번 깊은 복사하는 것은 엄청난 시간&공간 낭비를 발생시킨다. 
+			// => 따라서 재귀 호출을 할 때, Set을 인수로 넘기는 경우 최초의 Set을 그대로 이용하면서 명시적으로 .add()와 .delete()를 해줌으로써 백트래킹을 구현해준다: 
+			if (!visited.has(node)) {
+				visited.add(node); // Set에 추가
+				if (dfs(node, targetNode, visited, neighborLevel + 1))
+					// 최초 Set(visited)를 그대로 활용,
+					return true; 
+				visited.delete(node); // Set에서 삭제
+			}
+		}
+
+		return false;
+	}
+	// 문제에 따르면 여기까지 올 일은 없음 
+	return [];
 }
+
 export default {
 	solution: findRedundantConnection5,
 }

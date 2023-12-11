@@ -310,7 +310,7 @@ function maximumDetonation4(bombs: number[][]): number {
 
 	// bomb을 시작점으로 하여 연쇄 폭발이 일어나는 수를 반환하는 함수
     function bfs(bomb: number): number {
-        let queue = [bomb];
+		let queue: number[] = [bomb];
         visited[bomb] = true;
         let count = 1;
 
@@ -341,6 +341,53 @@ function maximumDetonation4(bombs: number[][]): number {
     return maxDetonation;
 };
 
+// 다른 풀이(BFS):
+// '연쇄되는 폭탄' 리스트를 따로 만들지 않아도, 어차피 내가 푼 로직의 (2)번 단계에서 각 폭탄을 시작점으로 전체 폭탄에 대해 검사를 진행하므로 없어도 괜찮다!
+function maximumDetonation5(bombs: number[][]): number {
+	let maxDetonation = 0;
+
+	for (let i = 0; i < bombs.length; i++) {
+		const exploded = new Set([i]);
+		const queue = [bombs[i]];
+
+		while (queue.length) {
+			const currentBomb = queue.shift();
+			for (let j = 0; j < bombs.length; j++) {
+				// '이웃 폭탄j'가 '터진 폭탄' 목록에 있으면 루트를 진행하지 않고,
+				if (exploded.has(j)) continue;
+				// 그렇지 않으면 '이웃 폭탄j'와 '현재 폭탄i' 사이의 거리를 계산하여 폭발 범위 내에 위치하는지 검사함
+				const neighborBomb = bombs[j];
+				const distanceSquare = (neighborBomb[0] - currentBomb[0]) ** 2 + (neighborBomb[1] - currentBomb[1]) ** 2;
+				if (distanceSquare <= currentBomb[2] ** 2) {
+					// '이웃' 폭탄이 현재 폭탄의 폭발 범위 내므로 
+					// '터진 폭탄' 목록에 폭탄 번호를 넣고 queue에도 추가
+					exploded.add(j);
+					queue.push(neighborBomb);
+				}
+			}
+		}
+
+		maxDetonation = Math.max(maxDetonation, exploded.size);
+	}
+
+	return maxDetonation;
+}	
+
+/*
+ * => 실행 결과, 
+ * "Iterative BFS('연쇄 폭탄' 리스트를 사용하지 않는)" 풀이 5번이 메모리가 가장 적게 들지만 시간이 2배 이상 걸린다. 
+ * 나머지 2, 3, 4번 풀이는 비슷한 양상인데 개중 
+ * "Iterative DFS" 풀이 2번이 메모리가 많이 사용되고, 
+ * "Recursive DFS" 풀이 3번과 "Iterative BFS" 풀이 4번이 메모리와 시간 모두를 가장 적게 쓴다.  
+ * 
+ Q1. 5번의 시간 2배 차이는 왜 그런가? 
+ 언뜻 봐서는 그냥 똑같은 n^2 시간인데... 
+ Q2. 이 문제가 왜 graph 인가?
+ 각 폭탄이 node고 방향있는 edges로 다른 폭탄과 연결되어 있다고 하는데...
+ 그러면 아무 폭탄에서 시작해서 방향있는 edges를 거쳐 도달할 수 있는 모든 지점이 곧 터트릴 수 있는 총 폭탄 개수가 된다.
+ Q3. 시간 복잡도 계산하기
+ */
+
 export default {
-	solution: maximumDetonation4,
+	solution: maximumDetonation5,
 }

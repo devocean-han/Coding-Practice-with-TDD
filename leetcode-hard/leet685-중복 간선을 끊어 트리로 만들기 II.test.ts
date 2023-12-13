@@ -57,4 +57,12 @@ describe('Reduntant Connection II', () => {
 			expect(solution(edges)).toEqual([2,1]);
 		});
 	});
+
+	describe('Error case: edges=[[5,2],[5,1],[3,1],[3,4],[3,5]]', () => {
+		let edges: number[][];
+		it(`should return [3,1]: '이미 등장한 부모가 자식으로 다시 등장하는 간선'을 찾는 것으로는 사이클을 보장하지 못함`, () => {
+			edges = [[5,2],[5,1],[3,1],[3,4],[3,5]];
+			expect(solution(edges)).toEqual([3, 1]);			
+		});
+	});
 });

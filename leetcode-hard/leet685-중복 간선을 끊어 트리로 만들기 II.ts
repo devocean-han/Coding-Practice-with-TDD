@@ -365,6 +365,9 @@ function findRedundantDirectedConnection6(edges: number[][]): number[] {
 	const parent = Array(n + 1).fill(0).map((value, index) => index);
 	// => edges의 간선이 5개일 때 parent=[0,1,2,3,4,5]
 
+	let first = [];
+	let second = [];
+
 	// Find 함수를 정의: 주어진 노드 x의 루트 노드를 찾는다. 
 	const find = (x: number): number => {
 		if (parent[x] !== x) {
@@ -374,16 +377,32 @@ function findRedundantDirectedConnection6(edges: number[][]): number[] {
 	}
 
 	// Union 함수를 정의: 주어진 노드 x와 y의 루트 노드를 합친다. 
+	// 두 집합을 합치는 작업이 가능하다면 true를, 아니면 false를 반환.
 	const union = (x: number, y: number): boolean => {
 		const rootX = find(x);
+		const rootY = find(y);
+		// x와 y가 이미 같은 집합에 속해 있다면 false를 반환,
+		if (rootX === rootY) {
+			return false;
+		}
+		// 서로 다른 집합이라면 x를 y의 집합으로 합친다.
+		// (x번 노드의 '시조'를 y의 '시조'로 업데이트)
+		parent[rootX] = rootY;
 		return true;
 	}
+	console.log(parent);
 	// 각 간선을 순회하면서 두 노드를 합치는 union 연산을 수행한다. 
-	// 만약 두 노드가 이미 같은 연결 요소(사이클)에 속해 있다면, 해당 간선은 불필요한 간선이므로 반환한다. 
+	for (let [u, v] of edges) {
+		// 만약 두 노드가 이미 같은 집합(사이클)에 속해 있다면, 해당 간선이 사이클을 완성시키는 마지막 간선이므로 반환한다. 
+		if (!union(u, v)) {
+			console.log(u, v, parent);
+			return [u, v];
+		}
+		console.log(u,v,parent);
+	}
+
 	return [];
 }
-
-
 /** 
  * Union-Find 알고리즘 : 서로소 집합 자료구조를 유지하는 알고리즘. 
  * 핵심 함수: 
@@ -391,7 +410,7 @@ function findRedundantDirectedConnection6(edges: number[][]): number[] {
  * 2) Find: 특정 원소가 어떤 집합에 속하는지를 확인한다.
  * 
  * 기본 아이디어: 
- * 집합을 서로소 부분집합으로 분할하는 것. 부분 집합은 보통 트리로 나타내고 루트 노드는 해답 집합의 대표가 됨.
+ * 집합을 서로소 부분집합으로 분할하는 것. 부분 집합은 보통 트리로 나타내고 루트 노드는 해당 집합의 대표가 됨.
  * 
  * 알고리즘 구현: 
  * 1) 초기화: 모든 원소가 각각의 집합에 속하도록 초기화한다.
@@ -403,6 +422,91 @@ function findRedundantDirectedConnection6(edges: number[][]): number[] {
  * 그래프에서 두 노드가 같은 집합에 속하는지를 빠르게 확인할 때 
  */
 
+function findRedundantDirectedConnection7(edges: number[][]): number[] {
+    const n = edges.length;
+    const parent: number[] = Array.from({length: n + 1}, (_, i) => i);
+	// => edges의 간선이 5개일 때 parent=[0,1,2,3,4,5]
+
+    let firstEdge: number[] = [];
+    let secondEdge: number[] = [];
+
+    // 모든 간선에 대해 순회
+    for (const [u, v] of edges) {
+        if (parent[v] === v) { // 만약 현재 간선의 끝 노드가 부모 노드를 가지지 않는다면:
+            parent[v] = u; // 현재 간선의 시작 노드를 부모 노드로 설정
+        } else { // 만약 현재 간선의 끝 노드가 이미 부모 노드를 가지고 있다면:
+            firstEdge = [parent[v], v]; // 첫 번째 불필요한 간선을 설정
+            secondEdge = [u, v]; // 두 번째 불필요한 간선을 설정
+        }
+    }
+
+	// 주어진 노드의 최상위 부모 노드를 찾는 함수
+	function find(x: number): number {
+		if (x !== parent[x]) {
+			parent[x] = find(parent[x]);
+		}
+		return parent[x];
+	}
+
+    // 모든 간선에 대해 순회
+	for (const [u, v] of edges) {
+		// 첫 번째 불필요한 간선과 현재 간선이 같으면 아무것도 하지 않음 
+		if (firstEdge[0] === u && firstEdge[1] === v)
+			continue;
+
+		// 만약 두 노드의 최상위 부모 노드가 같다면, 불필요한 간선을 반환
+        const x = find(u);
+        const y = find(v);
+		if (x === y)
+			return firstEdge;
+        
+		parent[y] = x; // 두 노드를 연결
+    }
+
+    // 두 번째 불필요한 간선을 반환.
+    return secondEdge;
+}
+
+
+// 주어진 그래프에서 불필요한 간선을 찾는 함수
+function findRedundantDirectedConnection8(edges: number[][]): number[] {
+    let n = edges.length; 
+    let parent: number[] = Array(n + 1).fill(0); // 각 노드의 부모 노드를 저장하는 배열을 초기화
+    let first: number[] = []; // 첫 번째 불필요한 간선을 저장
+    let second: number[] = []; // 두 번째 불필요한 간선을 저장
+
+    // 모든 간선에 대해 순회
+    for (const e of edges) {
+        if (parent[e[1]] === 0) { // 만약 현재 간선의 끝 노드가 부모 노드를 가지지 않는다면:
+            parent[e[1]] = e[0]; // 현재 간선의 시작 노드를 부모 노드로 설정
+        } else { // 만약 현재 간선의 끝 노드가 이미 부모 노드를 가지고 있다면,
+            first = [parent[e[1]], e[1]]; // 첫 번째 불필요한 간선을 설정
+            second = [...e]; // 두 번째 불필요한 간선을 설정
+            e[1] = 0; // 현재 간선을 무효화
+        }
+    }
+
+    // 모든 노드의 부모 노드를 자기 자신으로 설정
+    for (let i = 0; i <= n; ++i) parent[i] = i;
+
+	// 주어진 노드의 최상위 부모 노드를 찾는 함수
+	function find(parent: number[], x: number): number {
+		return x === parent[x] ? x : find(parent, parent[x]);
+	}
+
+    // 모든 간선에 대해 순회
+    for (const e of edges) {
+        if (e[1] === 0) continue; // 무효화된 간선은 건너뜁니다.
+        let [x, y] = [find(parent, e[0]), find(parent, e[1])]; // 각 노드의 최상위 부모 노드를 찾습니다.
+        if (x === y) return first.length === 0 ? e : first; // 만약 두 노드의 최상위 부모 노드가 같다면, 불필요한 간선을 반환
+        parent[x] = y; // 두 노드를 연결
+    }
+
+    // 두 번째 불필요한 간선을 반환\
+    return second;
+}
+
+
 export default {
-	solution: findRedundantDirectedConnection6,
+	solution: findRedundantDirectedConnection8,
 }

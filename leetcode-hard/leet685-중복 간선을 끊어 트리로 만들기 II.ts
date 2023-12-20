@@ -357,7 +357,7 @@ function findRedundantDirectedConnection5(edges: number[][]): number[] {
 	return doubleParent;
 }
 
-// Union-Find 알고리즘을 이용한 풀이:
+// (실패)Union-Find 알고리즘을 이용한 풀이:
 // 두 노드가 같은 '연결 집합'에 속하는지 확인하고, 두 연결 집합을 합치는 연산을 효율적으로 수행함.
 function findRedundantDirectedConnection6(edges: number[][]): number[] {
 	// 각 노드의 부모 노드를 저장하는 배열을 초기화한다.
@@ -422,6 +422,7 @@ function findRedundantDirectedConnection6(edges: number[][]): number[] {
  * 그래프에서 두 노드가 같은 집합에 속하는지를 빠르게 확인할 때 
  */
 
+// (실패)Union-Find 알고리즘을 이용한 풀이:
 function findRedundantDirectedConnection7(edges: number[][]): number[] {
     const n = edges.length;
     const parent: number[] = Array.from({length: n + 1}, (_, i) => i);
@@ -468,7 +469,7 @@ function findRedundantDirectedConnection7(edges: number[][]): number[] {
 }
 
 
-// 주어진 그래프에서 불필요한 간선을 찾는 함수
+// (성공)Union-Find 알고리즘을 이용한 풀이:
 function findRedundantDirectedConnection8(edges: number[][]): number[] {
     let n = edges.length; 
     let parent: number[] = Array(n + 1).fill(0); // 각 노드의 부모 노드를 저장하는 배열을 초기화

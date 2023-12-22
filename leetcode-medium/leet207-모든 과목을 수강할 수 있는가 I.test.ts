@@ -1,4 +1,4 @@
-import source from './leet207-모든 과목을 수강할 수 있는가';
+import source from './leet207-모든 과목을 수강할 수 있는가 I';
 const { solution } = source;
 
 describe('Course Schedule', () => {

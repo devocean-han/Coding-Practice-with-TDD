@@ -77,6 +77,7 @@
 	2) 각 노드를 시작점으로 삼아서 간선을 타고 가다가 자기 자신으로 돌아올 수 있는 루트를 찾는다. 사이클에 포함된 모든 노드가 두 번 yes를 외칠 것이다. 처음 등장한 사이클을 찾자마자 '사이클 찾기 루프'를 벗어나도록 한다. 
 	3) edges의 끝에서부터 살피면서 [a,b]가 모두 사이클에 포함되는 노드가 되는 간선을 찾아 반환한다. 
 */
+// (중단)
 function findRedundantConnection(edges: number[][]): number[] {
 	if (edges.length === 3) return edges[2];
 	

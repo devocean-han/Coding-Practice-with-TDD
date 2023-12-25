@@ -105,11 +105,11 @@ function ladderLength(beginWord: string, endWord: string, wordList: string[]): n
 		else return 0;
 	}
 
+	// 모든 이웃 관계 매핑 객체 생성: 
 	const relationMap = new Map<string, Set<string>>();
 	for (let keyWord of wordList) {
 		// 한 글자만 바꾼다...
 		for (let possibleWord of wordList) {
-			// every, some, filter, findAll(?), indexOf
 			if (keyWord.split('').filter((char, i) => char !== possibleWord[i]).length === 1) {
 				if (!relationMap.has(keyWord)) relationMap.set(keyWord, new Set());
 				if (!relationMap.has(possibleWord)) relationMap.set(possibleWord, new Set());
@@ -118,6 +118,39 @@ function ladderLength(beginWord: string, endWord: string, wordList: string[]): n
 			}
 		}
 	}
+	console.dir(relationMap);
+
+	// 목표 노드에 도달할 수 있는지 탐색
+	// 스택 초기화: beginWord와 한 끗 차이인 단어들
+	const stack: [string, number][] = [];
+	for (let word of wordList) {
+		if (word.split('').filter((char, i) => char !== beginWord[i]).length === 1) {
+			stack.push([word, 2]);
+		}
+	}
+	console.log('initial stack: ', stack);
+	const visited = new Set();
+	while (stack.length) {
+		let [curWord, step] = stack.pop();
+		if (curWord === endWord) {
+			// console.dir(visited);
+			return step;
+		}
+		if (!visited.has(curWord)) {
+			visited.add(curWord);
+			for (let neighbor of relationMap.get(curWord)) {
+				console.log(`cur word: ${curWord}, step: ${step}, current target: ${neighbor}`);
+				console.dir(visited);
+				if (!visited.has(neighbor))
+					stack.push([neighbor, step++]);
+			}
+			// => step += 1을 했을 땐 for 루프마다 +1이 돼서 이상해짐.
+			// => step++를 했을 땐 stack에 담길 때만 +1이 되고 for루프가 돌아갈 땐 되지를 않아서 의도한 대로 결과가 나옴. 
+			// 무슨 차이인 거지..? 
+		}
+	}
+	
+	return 0;
 };
 
 export default {

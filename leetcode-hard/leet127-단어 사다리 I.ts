@@ -121,11 +121,17 @@ function ladderLength(beginWord: string, endWord: string, wordList: string[]): n
 	console.dir(relationMap);
 
 	// 목표 노드에 도달할 수 있는지 탐색
-	// 스택 초기화: beginWord와 한 끗 차이인 단어들
+	// 스택 초기화: beginWord가 wordList에 있다면 그것으로 시작해야 함
 	const stack: [string, number][] = [];
-	for (let word of wordList) {
-		if (word.split('').filter((char, i) => char !== beginWord[i]).length === 1) {
-			stack.push([word, 2]);
+	if (relationMap.has(beginWord)) {
+		stack.push([beginWord, 1])
+	}
+	// 스택 초기화: beginWord와 한 끗 차이인 단어들
+	else {
+		for (let word of wordList) {
+			if (word.split('').filter((char, i) => char !== beginWord[i]).length === 1) {
+				stack.push([word, 2]);
+			}
 		}
 	}
 	console.log('initial stack: ', stack);
@@ -142,7 +148,8 @@ function ladderLength(beginWord: string, endWord: string, wordList: string[]): n
 				console.log(`cur word: ${curWord}, step: ${step}, current target: ${neighbor}`);
 				console.dir(visited);
 				if (!visited.has(neighbor))
-					stack.push([neighbor, step++]);
+					// visited.add(neighbor)
+					stack.push([neighbor, step + 1]);
 			}
 			// => step += 1을 했을 땐 for 루프마다 +1이 돼서 이상해짐.
 			// => step++를 했을 땐 stack에 담길 때만 +1이 되고 for루프가 돌아갈 땐 되지를 않아서 의도한 대로 결과가 나옴. 

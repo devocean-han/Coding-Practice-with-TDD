@@ -18,14 +18,14 @@ describe('Word Ladder I', () => {
 	// 	});
 	// });
 
-	describe('Example 1: "hit"->"cog", wordList=["hot","dot","dog","lot","log","cog"]', () => {
-		const wordList: string[] = ["hot","dot","dog","lot","log","cog"];
-		const beginWord: string = "hit";
-		const endWord: string = "cog";
-		it(`should return 5 as one shortest transformation sequence is: "hit" -> "hot" -> "dot" -> "dog" -> cog"`, () => {
-			expect(solution(beginWord, endWord, wordList)).toBe(5);
-		});
-	});
+	// describe('Example 1: "hit"->"cog", wordList=["hot","dot","dog","lot","log","cog"]', () => {
+	// 	const wordList: string[] = ["hot","dot","dog","lot","log","cog"];
+	// 	const beginWord: string = "hit";
+	// 	const endWord: string = "cog";
+	// 	it(`should return 5 as one shortest transformation sequence is: "hit" -> "hot" -> "dot" -> "dog" -> cog"`, () => {
+	// 		expect(solution(beginWord, endWord, wordList)).toBe(5);
+	// 	});
+	// });
 	// describe('Example 2: "hit"->"cog", wordList=["hot","dot","dog","lot","log"]', () => {
 	// 	const wordList: string[] = ["hot","dot","dog","lot","log"];
 	// 	const beginWord: string = "hit";
@@ -34,4 +34,21 @@ describe('Word Ladder I', () => {
 	// 		expect(solution(beginWord, endWord, wordList)).toBe(0);
 	// 	});
 	// });
+
+	// describe('Error case 14: "hot"->"dog", wordList=["hot","cog","dog","tot","hog","hop","pot","dot"]', () => {
+	// 	const wordList: string[] = ["hot","cog","dog","tot","hog","hop","pot","dot"];
+	// 	const beginWord: string = "hot";
+	// 	const endWord: string = "dog";
+	// 	it(`should return 5 as one shortest transformation sequence is: "hot" -> "dot" -> "dog"`, () => {
+	// 		expect(solution(beginWord, endWord, wordList)).toBe(3);
+	// 	});
+	// });
+	describe('Error case 23: "hit"->"cog", wordList=["hot","cog","dot","dog","hit","lot","log"]', () => {
+		const wordList: string[] = ["hot","cog","dot","dog","hit","lot","log"];
+		const beginWord: string = "hit";
+		const endWord: string = "cog";
+		it(`should return 5 as one shortest transformation sequence is: "hot" -> "dot" -> "dog"`, () => {
+			expect(solution(beginWord, endWord, wordList)).toBe(5);
+		});
+	});
 });

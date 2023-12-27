@@ -82,7 +82,7 @@
 // 방향? 무방향? : 무방향. 선후관계가 정해지지 않았으니까.
 // 탐색을 했다가 그 전 단계로 가는 길이 다시 더 빠른 길이 될 수: 없다. 없으므로 탐색을 했다면 '방문함' 표시를 하도록 하자.
 // 어떤 방향이 더 빠른 길이 될 지 알 수 없으므로: 백트래킹
-// 근데 같은 단어에 이르는 여러 '단계'가 있을 수 있잖아? : 그래도 더 빨리 등장하는 순서에 '방문함' 표시를 받았을 것이므로 이후에 더 늦은 단계에서 재등장하는 '방문한' 단어는 다시 고려할 필요 없다. 
+// 근데 같은 단어에 이르는 여러 '단계'가 있을 수 있잖아? : 그래도 더 빨리 등장하는 순서에 '방문함' 표시를 받았을 것이므로 이후에 더 늦은 단계에서 재등장하는 '방문한' 단어는 다시 고려할 필요 없다.
 // 즉, 그냥 마주치는 '미방문' 순서대로 '방문함' 표시를 하고 다니면 된다: 아, 이렇게 하려면 꼭 DFS여야 함. (맞나?)
 
 /* 필요 자료구조: 
@@ -99,6 +99,7 @@
 
 */
 
+// (시간 초과 실패) 백트래킹과 BFS를 이용한 풀이: 시간만 충분하다면 로직은 맞는듯.
 function ladderLength(beginWord: string, endWord: string, wordList: string[]): number {
 	if (wordList.length === 1) {
 		if (wordList[0] === endWord) return 2;
@@ -118,26 +119,26 @@ function ladderLength(beginWord: string, endWord: string, wordList: string[]): n
 			}
 		}
 	}
-	console.dir(relationMap);
+	// console.dir(relationMap);
 
 	// 목표 노드에 도달할 수 있는지 탐색
 	// 스택 초기화: beginWord가 wordList에 있다면 그것으로 시작해야 함
-	const stack: [string, number][] = [];
+	const queue: [string, number][] = [];
 	if (relationMap.has(beginWord)) {
-		stack.push([beginWord, 1])
+		queue.push([beginWord, 1])
 	}
 	// 스택 초기화: beginWord와 한 끗 차이인 단어들
 	else {
 		for (let word of wordList) {
 			if (word.split('').filter((char, i) => char !== beginWord[i]).length === 1) {
-				stack.push([word, 2]);
+				queue.push([word, 2]);
 			}
 		}
 	}
-	console.log('initial stack: ', stack);
+	// console.log('initial queue: ', queue);
 	const visited = new Set();
-	while (stack.length) {
-		let [curWord, step] = stack.pop();
+	while (queue.length) {
+		let [curWord, step] = queue.shift();
 		if (curWord === endWord) {
 			// console.dir(visited);
 			return step;
@@ -145,11 +146,11 @@ function ladderLength(beginWord: string, endWord: string, wordList: string[]): n
 		if (!visited.has(curWord)) {
 			visited.add(curWord);
 			for (let neighbor of relationMap.get(curWord)) {
-				console.log(`cur word: ${curWord}, step: ${step}, current target: ${neighbor}`);
-				console.dir(visited);
+				// console.log(`cur word: ${curWord}, step: ${step}, current target: ${neighbor}`);
+				// console.dir(visited);
 				if (!visited.has(neighbor))
 					// visited.add(neighbor)
-					stack.push([neighbor, step + 1]);
+					queue.push([neighbor, step + 1]);
 			}
 			// => step += 1을 했을 땐 for 루프마다 +1이 돼서 이상해짐.
 			// => step++를 했을 땐 stack에 담길 때만 +1이 되고 for루프가 돌아갈 땐 되지를 않아서 의도한 대로 결과가 나옴. 
@@ -160,6 +161,97 @@ function ladderLength(beginWord: string, endWord: string, wordList: string[]): n
 	return 0;
 };
 
+// (시간 초과 실패) 고쳐본 풀이: 여전히 BFS
+/* 개선 1) relationMap을 만드는 반복 횟수를 반절로 삭감 (N*N -> N*N/2)
+	개선 2) 스택 초기화 순회(N)을 삭제, 
+	개선 3)
+*/
+function ladderLength1(beginWord: string, endWord: string, wordList: string[]): number {
+	const wordSet = new Set(wordList);
+	if (!wordSet.has(endWord)) return 0;
+
+	const relationMap = new Map<string, Set<string>>();
+	// for (let i = 0; i < wordList.length; i++) {
+	// 	const keyWord = wordList[i];
+	// 	for (let j = i + 1; j < wordList.length; j++) {
+	// 		// 위의 풀이보다 실행시간을 반절로 줄임
+	// 		const possibleWord = wordList[j];
+	// 		if (keyWord.split('').filter((char, index) => char !== possibleWord[index]).length === 1) {
+	// 			if (!relationMap.has(keyWord)) relationMap.set(keyWord, new Set());
+	// 			if (!relationMap.has(possibleWord)) relationMap.set(possibleWord, new Set());
+	// 			relationMap.get(keyWord).add(possibleWord);
+	// 			relationMap.get(possibleWord).add(keyWord);
+	// 		}
+	// 	}
+	// }
+	for (let keyWord of [beginWord, ...wordList]) {
+        for (let i = 0; i < keyWord.length; i++) {
+            for (let j = 0; j < 26; j++) {
+                const possibleWord = keyWord.slice(0, i) + String.fromCharCode(97 + j) + keyWord.slice(i + 1);
+                if (possibleWord !== keyWord && wordSet.has(possibleWord)) {
+                    if (!relationMap.has(keyWord)) relationMap.set(keyWord, new Set());
+                    if (!relationMap.has(possibleWord)) relationMap.set(possibleWord, new Set());
+                    relationMap.get(keyWord).add(possibleWord);
+                    relationMap.get(possibleWord).add(keyWord);
+                }
+            }
+        }
+    }
+
+	const queue: [string, number][] = [[beginWord, 1]];
+	const visited = new Set<string>();
+	while (queue.length) {
+		const [curWord, step] = queue.shift();
+		if (curWord === endWord)
+			return step;
+
+		if (!visited.has(curWord)) {
+			visited.add(curWord);
+			if (relationMap.has(curWord)) {
+				for (let neighbor of relationMap.get(curWord)) {
+					if (!visited.has(neighbor))
+						queue.push([neighbor, step + 1])
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
+
+// 다른 시도: 
+function ladderLength2(beginWord: string, endWord: string, wordList: string[]): number {
+	const wordSet = new Set(wordList);
+	if (!wordSet.has(endWord))
+		return 0;
+
+	const queue: [string, number, string[]][] = [[beginWord, 1, []]];
+	const visited = new Set<string>();
+
+	while (queue.length) {
+		const [curWord, step, path] = queue.shift();
+		if (curWord === endWord) {
+			console.log([...path, curWord])
+			return step;
+		}
+
+		if (!visited.has(curWord)) {
+			visited.add(curWord);
+			for (let i = 0; i < curWord.length; i++) {
+				for (let j = 0; j < 26; j++) {
+					const nextWord = curWord.slice(0, i) + String.fromCharCode(97 + j) + curWord.slice(i + 1);
+					if (wordSet.has(nextWord)) {
+						queue.push([nextWord, step + 1, [...path, curWord]]);
+					}
+				}
+			}
+		}
+	}
+
+	return 0;
+}
+
 export default {
-	solution: ladderLength,
+	solution: ladderLength1,
 }

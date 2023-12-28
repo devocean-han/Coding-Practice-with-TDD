@@ -119,7 +119,7 @@ function ladderLength(beginWord: string, endWord: string, wordList: string[]): n
 			}
 		}
 	}
-	// console.dir(relationMap);
+	console.dir(relationMap);
 
 	// 목표 노드에 도달할 수 있는지 탐색
 	// 스택 초기화: beginWord가 wordList에 있다면 그것으로 시작해야 함
@@ -253,5 +253,5 @@ function ladderLength2(beginWord: string, endWord: string, wordList: string[]): 
 }
 
 export default {
-	solution: ladderLength1,
+	solution: ladderLength,
 }
